@@ -1,0 +1,12 @@
+.\out\control_ir.o: src\IR\control_ir.c
+.\out\control_ir.o: C:\Keil\ARM\INC\NXP\LPC17xx\LPC17xx.h
+.\out\control_ir.o: C:\Keil\ARM\RV31\INC\core_cm3.h
+.\out\control_ir.o: C:\Keil\ARM\RV31\INC\stdint.h
+.\out\control_ir.o: C:\Keil\ARM\INC\NXP\LPC17xx\system_LPC17xx.h
+.\out\control_ir.o: C:\Keil\ARM\RV31\INC\stdio.h
+.\out\control_ir.o: C:\Keil\ARM\RV31\INC\string.h
+.\out\control_ir.o: .\inc\hardware_profile.h
+.\out\control_ir.o: .\inc\IR\control_ir.h
+.\out\control_ir.o: .\inc\IR\pwm_ir.h
+.\out\control_ir.o: .\inc\IR\ir.h
+.\out\control_ir.o: C:\Keil\ARM\RV31\INC\RTL.H

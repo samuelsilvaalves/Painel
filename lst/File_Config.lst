@@ -1,0 +1,1990 @@
+L 1 "src\file_system\File_Config.c"
+N/*----------------------------------------------------------------------------
+N *      RL-ARM - FlashFS
+N *----------------------------------------------------------------------------
+N *      Name:    FILE_CONFIG.C
+N *      Purpose: Configuration of RL FlashFS by user
+N *      Rev.:    V4.20
+N *----------------------------------------------------------------------------
+N *      This code is part of the RealView Run-Time Library.
+N *      Copyright (c) 2004-2011 KEIL - An ARM Company. All rights reserved.
+N *---------------------------------------------------------------------------*/
+N
+N#include <File_Config.h>
+L 1 "C:\Keil\ARM\RV31\INC\File_Config.h" 1
+N/*----------------------------------------------------------------------------
+N *      RL-ARM - FlashFS
+N *----------------------------------------------------------------------------
+N *      Name:    FILE_CONFIG.H 
+N *      Purpose: Common Definitions
+N *      Rev.:    V4.20
+N *----------------------------------------------------------------------------
+N *      This code is part of the RealView Run-Time Library.
+N *      Copyright (c) 2004-2011 KEIL - An ARM Company. All rights reserved.
+N *---------------------------------------------------------------------------*/
+N
+N#ifndef __FILE_CONFIG_H__
+N#define __FILE_CONFIG_H__
+N
+N#include <RTL.h>
+L 1 "C:\Keil\ARM\RV31\INC\RTL.h" 1
+N/*----------------------------------------------------------------------------
+N *      RL-ARM - A P I 
+N *----------------------------------------------------------------------------
+N *      Name:    RTL.H 
+N *      Purpose: Application Programming Interface. 
+N *      Rev.:    V4.20
+N *----------------------------------------------------------------------------
+N *      This code is part of the RealView Run-Time Library.
+N *      Copyright (c) 2004-2011 KEIL - An ARM Company. All rights reserved.
+N *---------------------------------------------------------------------------*/
+N
+N#ifndef __RTL_H__
+N#define __RTL_H__
+N
+N/* RL-ARM version number. */
+N#define __RL_ARM_VER    420
+N 
+N#define __task          __declspec(noreturn)
+N
+N#ifndef NULL
+N #ifdef __cplusplus              // EC++
+S  #define NULL          0
+N #else
+N  #define NULL          ((void *) 0)
+N #endif
+N#endif
+N
+N#ifndef EOF
+N #define EOF            -1
+N#endif
+N
+N#ifndef __size_t
+N #define __size_t       1
+N typedef unsigned int   size_t;
+N#endif
+N
+Ntypedef signed char     S8;
+Ntypedef unsigned char   U8;
+Ntypedef short           S16;
+Ntypedef unsigned short  U16;
+Ntypedef int             S32;
+Ntypedef unsigned int    U32;
+Ntypedef long long       S64;
+Ntypedef unsigned long long U64;
+Ntypedef unsigned char   BIT;
+Ntypedef unsigned int    BOOL;
+N
+N#ifndef __TRUE
+N #define __TRUE         1
+N#endif
+N#ifndef __FALSE
+N #define __FALSE        0
+N#endif
+N
+N#ifdef __BIG_ENDIAN
+S #define U32_LE(v) (__rev(v))
+S #define U16_LE(v) (__rev(v) >> 16) 
+S #define U32_BE(v)       (v)
+S #define U16_BE(v)       (v)
+N#else
+N #define U32_BE(v) (__rev(v))
+N #define U16_BE(v) (__rev(v) >> 16) 
+N #define U32_LE(v)       (v)
+N #define U16_LE(v)       (v)
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N *                             RTX Kernel API
+N *---------------------------------------------------------------------------*/
+N
+N#ifdef __cplusplus               // EC++
+Sextern "C"  {
+N#endif
+N
+N/* Definition of Semaphore type */
+Ntypedef U32 OS_SEM[2];
+N
+N/* Definition of Mailbox type */
+N#define os_mbx_declare(name,cnt)    U32 name [4 + cnt]
+Ntypedef U32 OS_MBX[];
+N
+N/* Definition of Mutex type */
+Ntypedef U32 OS_MUT[3];
+N
+N/* Task Identification number. */
+Ntypedef U32 OS_TID;
+N
+N/* Function return of system calls returning an object identification */
+Ntypedef void *OS_ID;
+N
+N/* Function return of system calls indicating an event or completion state */
+Ntypedef U32 OS_RESULT;
+N
+N/* Return codes */
+N#define OS_R_TMO        0x01
+N#define OS_R_EVT        0x02
+N#define OS_R_SEM        0x03
+N#define OS_R_MBX        0x04
+N#define OS_R_MUT        0x05
+N
+N#define OS_R_OK         0x00
+N#define OS_R_NOK        0xff
+N
+N#define OS_TCB_SIZE     48
+N#define OS_TMR_SIZE     8
+N
+N/* Error Codes */
+N#define OS_ERR_STK_OVF  1
+N#define OS_ERR_FIFO_OVF 2
+N#define OS_ERR_MBX_OVF  3
+N
+N#if !(defined(__TARGET_ARCH_6S_M) || defined(__TARGET_ARCH_7_M) || defined(__TARGET_ARCH_7E_M))
+X#if !(0L || 1L || 0L)
+S
+S/*----------------------------------------------------------------------------
+S *      Functions ARM
+S *---------------------------------------------------------------------------*/
+S
+S/* Task Management */
+S#define os_sys_init(tsk)              os_sys_init0(tsk,0,NULL)
+S#define os_sys_init_prio(tsk,prio)    os_sys_init0(tsk,prio,NULL)
+S#define os_sys_init_user(tsk,prio,stk,size)                                   \
+S                                      os_sys_init0(tsk,prio|(size<<8),stk)
+X#define os_sys_init_user(tsk,prio,stk,size)                                                                         os_sys_init0(tsk,prio|(size<<8),stk)
+S#define os_tsk_create(tsk,prio)       os_tsk_create0(tsk,prio,NULL,NULL)
+S#define os_tsk_create_user(tsk,prio,stk,size)                                 \
+S                                      os_tsk_create0(tsk,prio|(size<<8),stk,NULL)
+X#define os_tsk_create_user(tsk,prio,stk,size)                                                                       os_tsk_create0(tsk,prio|(size<<8),stk,NULL)
+S#define os_tsk_create_ex(tsk,prio,argv) os_tsk_create_ex0(tsk,prio,NULL,argv)
+S#define os_tsk_create_user_ex(tsk,prio,stk,size,argv)                         \
+S                                      os_tsk_create_ex0(tsk,prio|(size<<8),stk,argv)
+X#define os_tsk_create_user_ex(tsk,prio,stk,size,argv)                                                               os_tsk_create_ex0(tsk,prio|(size<<8),stk,argv)
+S#define os_tsk_delete_self()          os_tsk_delete(0)
+S#define os_tsk_prio_self(prio)        os_tsk_prio(0,prio)
+S#define isr_tsk_get()                 os_tsk_self()
+S
+Sextern void      os_sys_init0 (void (*task)(void), U32 prio_stksz, void *stk);
+Sextern OS_TID    os_tsk_create0 (void (*task)(void), U32 prio_stksz, 
+S                                 void *stk, void *argv);
+Sextern OS_TID    os_tsk_create_ex0 (void (*task)(void *), U32 prio_stksz, 
+S                                    void *stk, void *argv);
+Sextern OS_TID    os_tsk_self (void);
+Sextern void      os_tsk_pass (void);
+Sextern OS_RESULT os_tsk_prio (OS_TID task_id, U8 new_prio);
+Sextern OS_RESULT os_tsk_delete (OS_TID task_id);
+S
+S/* Event flag Management */
+S#define os_evt_wait_or(wflags,tmo)      os_evt_wait(wflags,tmo,__FALSE)
+S#define os_evt_wait_and(wflags,tmo)     os_evt_wait(wflags,tmo,__TRUE)
+S
+Sextern OS_RESULT os_evt_wait (U16 wait_flags, U16 timeout, BOOL and_wait);
+Sextern void      os_evt_set (U16 event_flags, OS_TID task_id);
+Sextern void      os_evt_clr (U16 clear_flags, OS_TID task_id);
+Sextern void      isr_evt_set (U16 event_flags, OS_TID task_id);
+Sextern U16       os_evt_get (void);
+S
+S/* Semaphore Management */
+Sextern void      os_sem_init (OS_ID semaphore, U16 token_count);
+Sextern OS_RESULT os_sem_send (OS_ID semaphore);
+Sextern OS_RESULT os_sem_wait (OS_ID semaphore, U16 timeout);
+Sextern void      isr_sem_send (OS_ID semaphore);
+S
+S/* Mailbox Management */
+S#define isr_mbx_check(mbx)              os_mbx_check(mbx)
+S
+Sextern void      os_mbx_init (OS_ID mailbox, U16 mbx_size);
+Sextern OS_RESULT os_mbx_send (OS_ID mailbox, void *message_ptr, U16 timeout);
+Sextern OS_RESULT os_mbx_wait (OS_ID mailbox, void  **message, U16 timeout);
+Sextern OS_RESULT os_mbx_check (OS_ID mailbox);
+Sextern void      isr_mbx_send (OS_ID mailbox, void *message_ptr);
+Sextern OS_RESULT isr_mbx_receive (OS_ID mailbox, void **message);
+S
+S/* Mutex Management */
+Sextern void      os_mut_init (OS_ID mutex);
+Sextern OS_RESULT os_mut_release (OS_ID mutex);
+Sextern OS_RESULT os_mut_wait (OS_ID mutex, U16 timeout);
+S
+S/* Time Management */
+Sextern void      os_dly_wait (U16 delay_time);
+Sextern void      os_itv_set (U16 interval_time);
+Sextern void      os_itv_wait (void);
+S
+S/* User Timer Management */
+Sextern OS_ID     os_tmr_create (U16 tcnt, U16 info);
+Sextern OS_ID     os_tmr_kill (OS_ID timer);
+S
+S/* System Functions */
+Sextern void      tsk_lock (void) __swi (5);
+Sextern void      tsk_unlock (void);
+S
+S/* Fixed Memory Block Management Functions */
+Sextern int       _init_box (void *box_mem, U32 box_size, U32 blk_size);
+Sextern void     *_alloc_box (void *box_mem) __swi (1);
+Sextern void     *_calloc_box (void *box_mem);
+Sextern int       _free_box (void *box_mem, void *box) __swi (2);
+S
+N#else
+N
+N/*----------------------------------------------------------------------------
+N *      Functions Cortex-M
+N *---------------------------------------------------------------------------*/
+N
+N#define __SVC_0         __svc_indirect(0)
+N
+N/* Task Management */
+Nextern void      os_set_env    (void);
+Nextern void      rt_sys_init   (void (*task)(void), U8 priority, void *stk);
+Nextern void      rt_tsk_pass   (void);
+Nextern OS_TID    rt_tsk_self   (void);
+Nextern OS_RESULT rt_tsk_prio   (OS_TID task_id, U8 new_prio);
+Nextern OS_TID    rt_tsk_create (void (*task)(void), U8 priority, void *stk, void *argv);
+Nextern OS_RESULT rt_tsk_delete (OS_TID task_id);
+N
+N#define os_sys_init(tsk)              os_set_env();                           \
+N                                      _os_sys_init((U32)rt_sys_init,tsk,0,NULL)
+X#define os_sys_init(tsk)              os_set_env();                                                                 _os_sys_init((U32)rt_sys_init,tsk,0,NULL)
+N#define os_sys_init_user(tsk,prio,stk,size)                                   \
+N                                      os_set_env();                           \
+N                                      _os_sys_init((U32)rt_sys_init,tsk,prio|(size<<8),stk)
+X#define os_sys_init_user(tsk,prio,stk,size)                                                                         os_set_env();                                                                 _os_sys_init((U32)rt_sys_init,tsk,prio|(size<<8),stk)
+N#define os_sys_init_prio(tsk,prio)    os_set_env();                           \
+N                                      _os_sys_init((U32)rt_sys_init,tsk,prio,NULL)
+X#define os_sys_init_prio(tsk,prio)    os_set_env();                                                                 _os_sys_init((U32)rt_sys_init,tsk,prio,NULL)
+N#define os_tsk_create(tsk,prio)       _os_tsk_create((U32)rt_tsk_create,tsk,prio,NULL,NULL)
+N#define os_tsk_create_user(tsk,prio,stk,size)                                 \
+N                                      _os_tsk_create((U32)rt_tsk_create,tsk,prio|(size<<8),stk,NULL)
+X#define os_tsk_create_user(tsk,prio,stk,size)                                                                       _os_tsk_create((U32)rt_tsk_create,tsk,prio|(size<<8),stk,NULL)
+N#define os_tsk_create_ex(tsk,prio,argv) _os_tsk_create_ex((U32)rt_tsk_create,tsk,prio,NULL,argv)
+N#define os_tsk_create_user_ex(tsk,prio,stk,size,argv)                         \
+N                                      _os_tsk_create_ex((U32)rt_tsk_create,tsk,prio|(size<<8),stk,argv)
+X#define os_tsk_create_user_ex(tsk,prio,stk,size,argv)                                                               _os_tsk_create_ex((U32)rt_tsk_create,tsk,prio|(size<<8),stk,argv)
+N#define os_tsk_self()                 _os_tsk_self((U32)rt_tsk_self)
+N#define os_tsk_pass()                 _os_tsk_pass((U32)rt_tsk_pass)
+N#define os_tsk_prio(task_id,new_prio) _os_tsk_prio((U32)rt_tsk_prio,task_id,new_prio)
+N#define os_tsk_prio_self(prio)        _os_tsk_prio((U32)rt_tsk_prio,0,prio)
+N#define os_tsk_delete(task_id)        _os_tsk_delete((U32)rt_tsk_delete,task_id)
+N#define os_tsk_delete_self()          _os_tsk_delete((U32)rt_tsk_delete, 0)
+N#define isr_tsk_get()                 rt_tsk_self()
+N
+Nextern void      _os_sys_init(U32 p, void (*task)(void), U32 prio_stksz,
+N                                     void *stk)                        __SVC_0;
+X                                     void *stk)                        __svc_indirect(0);
+Nextern OS_TID    _os_tsk_create (U32 p, void (*task)(void), U32 prio_stksz,
+N                                        void *stk, void *argv)         __SVC_0;
+X                                        void *stk, void *argv)         __svc_indirect(0);
+Nextern OS_TID    _os_tsk_create_ex (U32 p, void (*task)(void *), U32 prio_stksz,
+N                                           void *stk, void *argv)      __SVC_0;
+X                                           void *stk, void *argv)      __svc_indirect(0);
+Nextern OS_TID    _os_tsk_self (U32 p)                                  __SVC_0;
+Xextern OS_TID    _os_tsk_self (U32 p)                                  __svc_indirect(0);
+Nextern void      _os_tsk_pass (U32 p)                                  __SVC_0;
+Xextern void      _os_tsk_pass (U32 p)                                  __svc_indirect(0);
+Nextern OS_RESULT _os_tsk_prio (U32 p, OS_TID task_id, U8 new_prio)     __SVC_0;
+Xextern OS_RESULT _os_tsk_prio (U32 p, OS_TID task_id, U8 new_prio)     __svc_indirect(0);
+Nextern OS_RESULT _os_tsk_delete (U32 p, OS_TID task_id)                __SVC_0;
+Xextern OS_RESULT _os_tsk_delete (U32 p, OS_TID task_id)                __svc_indirect(0);
+N
+N/* Event flag Management */
+Nextern OS_RESULT rt_evt_wait (U16 wait_flags,  U16 timeout, BOOL and_wait);
+Nextern void      rt_evt_set  (U16 event_flags, OS_TID task_id);
+Nextern void      rt_evt_clr  (U16 clear_flags, OS_TID task_id);
+Nextern U16       rt_evt_get  (void);
+N
+N#define os_evt_wait_or(wflags,tmo)    _os_evt_wait((U32)rt_evt_wait,wflags,tmo,__FALSE)
+N#define os_evt_wait_and(wflags,tmo)   _os_evt_wait((U32)rt_evt_wait,wflags,tmo,__TRUE)
+N#define os_evt_set(evt_flags,task_id) _os_evt_set((U32)rt_evt_set,evt_flags,task_id)
+N#define os_evt_clr(clr_flags,task_id) _os_evt_clr((U32)rt_evt_clr,clr_flags,task_id)
+N#define os_evt_get()                  _os_evt_get((U32)rt_evt_get)
+N
+Nextern OS_RESULT _os_evt_wait(U32 p, U16 wait_flags, U16 timeout,
+N                                     BOOL and_wait)                    __SVC_0;
+X                                     BOOL and_wait)                    __svc_indirect(0);
+Nextern void      _os_evt_set (U32 p, U16 event_flags, OS_TID task_id)  __SVC_0;
+Xextern void      _os_evt_set (U32 p, U16 event_flags, OS_TID task_id)  __svc_indirect(0);
+Nextern void      _os_evt_clr (U32 p, U16 clear_flags, OS_TID task_id)  __SVC_0;
+Xextern void      _os_evt_clr (U32 p, U16 clear_flags, OS_TID task_id)  __svc_indirect(0);
+Nextern U16       _os_evt_get (U32 p)                                   __SVC_0;
+Xextern U16       _os_evt_get (U32 p)                                   __svc_indirect(0);
+Nextern void      isr_evt_set (U16 event_flags, OS_TID task_id);
+N
+N/* Semaphore Management */
+Nextern void      rt_sem_init (OS_ID semaphore, U16 token_count);
+Nextern OS_RESULT rt_sem_send (OS_ID semaphore);
+Nextern OS_RESULT rt_sem_wait (OS_ID semaphore, U16 timeout);
+N
+N#define os_sem_init(sem,t_count)     _os_sem_init((U32)rt_sem_init,sem,t_count)
+N#define os_sem_send(sem)             _os_sem_send((U32)rt_sem_send,sem)
+N#define os_sem_wait(sem,tmo)         _os_sem_wait((U32)rt_sem_wait,sem,tmo)
+N
+Nextern void      _os_sem_init (U32 p, OS_ID semaphore, 
+N                                      U16 token_count)                 __SVC_0;
+X                                      U16 token_count)                 __svc_indirect(0);
+Nextern OS_RESULT _os_sem_send (U32 p, OS_ID semaphore)                 __SVC_0;
+Xextern OS_RESULT _os_sem_send (U32 p, OS_ID semaphore)                 __svc_indirect(0);
+Nextern OS_RESULT _os_sem_wait (U32 p, OS_ID semaphore, U16 timeout)    __SVC_0;
+Xextern OS_RESULT _os_sem_wait (U32 p, OS_ID semaphore, U16 timeout)    __svc_indirect(0);
+Nextern void      isr_sem_send (OS_ID semaphore);
+N
+N/* Mailbox Management */
+Nextern void      rt_mbx_init  (OS_ID mailbox, U16 mbx_size);
+Nextern OS_RESULT rt_mbx_send  (OS_ID mailbox, void *p_msg,    U16 timeout);
+Nextern OS_RESULT rt_mbx_wait  (OS_ID mailbox, void **message, U16 timeout);
+Nextern OS_RESULT rt_mbx_check (OS_ID mailbox);
+N
+N#define os_mbx_init(mbx,mbx_size)     _os_mbx_init((U32)rt_mbx_init,mbx,mbx_size)
+N#define os_mbx_send(mbx,p_msg,tmo)    _os_mbx_send((U32)rt_mbx_send,mbx,p_msg,tmo)
+N#define os_mbx_wait(mbx,message,tmo)  _os_mbx_wait((U32)rt_mbx_wait,mbx,message,tmo)
+N#define os_mbx_check(mbx)             _os_mbx_check((U32)rt_mbx_check,mbx)
+N#define isr_mbx_check(mbx)            rt_mbx_check(mbx)
+N
+Nextern void      _os_mbx_init (U32 p, OS_ID mailbox, U16 mbx_size)     __SVC_0;
+Xextern void      _os_mbx_init (U32 p, OS_ID mailbox, U16 mbx_size)     __svc_indirect(0);
+Nextern OS_RESULT _os_mbx_send (U32 p, OS_ID mailbox, void *message_ptr,
+N                                      U16 timeout)                     __SVC_0;
+X                                      U16 timeout)                     __svc_indirect(0);
+Nextern OS_RESULT _os_mbx_wait (U32 p, OS_ID mailbox, void  **message,
+N                                      U16 timeout)                     __SVC_0;
+X                                      U16 timeout)                     __svc_indirect(0);
+Nextern OS_RESULT _os_mbx_check (U32 p, OS_ID mailbox)                  __SVC_0;
+Xextern OS_RESULT _os_mbx_check (U32 p, OS_ID mailbox)                  __svc_indirect(0);
+Nextern void      isr_mbx_send (OS_ID mailbox, void *message_ptr);
+Nextern OS_RESULT isr_mbx_receive (OS_ID mailbox, void **message);
+N
+N/* Mutex Management */
+Nextern void      rt_mut_init    (OS_ID mutex);
+Nextern OS_RESULT rt_mut_release (OS_ID mutex);
+Nextern OS_RESULT rt_mut_wait    (OS_ID mutex, U16 timeout);
+N
+N#define os_mut_init(mutex)         _os_mut_init((U32)rt_mut_init,mutex)
+N#define os_mut_release(mutex)      _os_mut_release((U32)rt_mut_release,mutex)
+N#define os_mut_wait(mutex,timeout) _os_mut_wait((U32)rt_mut_wait,mutex,timeout)
+N
+Nextern void      _os_mut_init (U32 p, OS_ID mutex)                     __SVC_0;
+Xextern void      _os_mut_init (U32 p, OS_ID mutex)                     __svc_indirect(0);
+Nextern OS_RESULT _os_mut_release (U32 p, OS_ID mutex)                  __SVC_0;
+Xextern OS_RESULT _os_mut_release (U32 p, OS_ID mutex)                  __svc_indirect(0);
+Nextern OS_RESULT _os_mut_wait (U32 p, OS_ID mutex, U16 timeout)        __SVC_0;
+Xextern OS_RESULT _os_mut_wait (U32 p, OS_ID mutex, U16 timeout)        __svc_indirect(0);
+N
+N/* Time Management */
+Nextern void      rt_dly_wait (U16 delay_time);
+Nextern void      rt_itv_set  (U16 interval_time);
+Nextern void      rt_itv_wait (void);
+N
+N#define os_dly_wait(delay_time)    _os_dly_wait((U32)rt_dly_wait,delay_time)
+N#define os_itv_set(interval_time)  _os_itv_set((U32)rt_itv_set,interval_time)
+N#define os_itv_wait()              _os_itv_wait((U32)rt_itv_wait)
+N
+Nextern void      _os_dly_wait (U32 p, U16 delay_time)                  __SVC_0;
+Xextern void      _os_dly_wait (U32 p, U16 delay_time)                  __svc_indirect(0);
+Nextern void      _os_itv_set (U32 p, U16 interval_time)                __SVC_0;
+Xextern void      _os_itv_set (U32 p, U16 interval_time)                __svc_indirect(0);
+Nextern void      _os_itv_wait (U32 p)                                  __SVC_0;
+Xextern void      _os_itv_wait (U32 p)                                  __svc_indirect(0);
+N
+N/* User Timer Management */
+Nextern OS_ID     rt_tmr_create (U16 tcnt, U16 info);
+Nextern OS_ID     rt_tmr_kill   (OS_ID timer);
+N
+N#define os_tmr_create(tcnt,info)   _os_tmr_create((U32)rt_tmr_create,tcnt,info)
+N#define os_tmr_kill(timer)         _os_tmr_kill((U32)rt_tmr_kill,timer)
+N
+Nextern OS_ID     _os_tmr_create (U32 p, U16 tcnt, U16 info)            __SVC_0;
+Xextern OS_ID     _os_tmr_create (U32 p, U16 tcnt, U16 info)            __svc_indirect(0);
+Nextern OS_ID     _os_tmr_kill (U32 p, OS_ID timer)                     __SVC_0;
+Xextern OS_ID     _os_tmr_kill (U32 p, OS_ID timer)                     __svc_indirect(0);
+N
+N/* System Functions */
+Nextern void      rt_tsk_lock   (void);
+Nextern void      rt_tsk_unlock (void);
+N
+N#define tsk_lock()                 _os_tsk_lock((U32)rt_tsk_lock)
+N#define tsk_unlock()               _os_tsk_unlock((U32)rt_tsk_unlock)
+N
+Nextern void      _os_tsk_lock (U32 p)                                  __SVC_0;
+Xextern void      _os_tsk_lock (U32 p)                                  __svc_indirect(0);
+Nextern void      _os_tsk_unlock (U32 p)                                __SVC_0;
+Xextern void      _os_tsk_unlock (U32 p)                                __svc_indirect(0);
+N
+N/* Fixed Memory Block Management Functions */
+Nextern int       _init_box (void *box_mem, U32 box_size, U32 blk_size);
+Nextern void     *_alloc_box (void *box_mem);
+Nextern void     *_calloc_box (void *box_mem);
+Nextern int       _free_box (void *box_mem, void *box);
+N
+N#endif
+N
+N#define BOX_ALIGN_8     0x80000000
+N#define _declare_box(pool,size,cnt)   U32 pool[(((size)+3)/4)*(cnt) + 3]
+N#define _declare_box8(pool,size,cnt)  U64 pool[(((size)+7)/8)*(cnt) + 2]
+N#define _init_box8(pool,size,bsize)   _init_box (pool,size,bsize | BOX_ALIGN_8)
+N
+N/* For compatibility with older configurations.*/
+N#define os_stk_overflow         os_error
+N
+N/*----------------------------------------------------------------------------
+N *                        Flash File System API
+N *---------------------------------------------------------------------------*/
+N
+Ntypedef struct {                        /* RL Time format (FFS, TCPnet)      */
+N  U8  hr;                               /* Hours    [0..23]                  */
+N  U8  min;                              /* Minutes  [0..59]                  */
+N  U8  sec;                              /* Seconds  [0..59]                  */
+N  U8  day;                              /* Day      [1..31]                  */
+N  U8  mon;                              /* Month    [1..12]                  */
+N  U16 year;                             /* Year     [1980..2107]             */
+N} RL_TIME;
+N
+Ntypedef struct {                        /* Search info record                */
+N  S8  name[256];                        /* Name                              */
+N  U32 size;                             /* File size in bytes                */
+N  U16 fileID;                           /* System Identification             */
+N  U8  attrib;                           /* Attributes                        */
+N  RL_TIME time;                         /* Create/Modify Time                */
+N} FINFO;
+N
+Nextern int finit (const char *drive);
+Nextern int funinit (const char *drive);
+Nextern int fdelete (const char *filename);
+Nextern int frename (const char *oldname, const char *newname);
+Nextern int ffind (const char *pattern, FINFO *info);
+Nextern U64 ffree (const char *drive);
+Nextern int fformat (const char *drive);
+Nextern int fanalyse (const char *drive);
+Nextern int fcheck (const char *drive);
+Nextern int fdefrag (const char *drive);
+N
+N/* The following macros provide for common functions */
+N#define unlink(fn)      fdelete(fn);
+N
+N/*----------------------------------------------------------------------------
+N *                             TCPnet API
+N *---------------------------------------------------------------------------*/
+N
+N/* UDP Options */
+N#define UDP_OPT_SEND_CS    0x01   /* Calculate Checksum for UDP send frames  */
+N#define UDP_OPT_CHK_CS     0x02   /* Verify Checksum for received UDP frames */
+N
+N/* TCP Socket Types */
+N#define TCP_TYPE_SERVER    0x01   /* Socket Type Server (open for listening) */
+N#define TCP_TYPE_CLIENT    0x02   /* Socket Type Client (initiate connect)   */
+N#define TCP_TYPE_DELAY_ACK 0x04   /* Socket Type Delayed Acknowledge         */
+N#define TCP_TYPE_FLOW_CTRL 0x08   /* Socket Type Flow Control                */
+N#define TCP_TYPE_KEEP_ALIVE 0x10  /* Socket Type Keep Alive                  */
+N#define TCP_TYPE_CLIENT_SERVER (TCP_TYPE_SERVER | TCP_TYPE_CLIENT)
+N
+N/* TCP Callback Events */
+N#define TCP_EVT_CONREQ     0      /* Connect request received event          */
+N#define TCP_EVT_CONNECT    1      /* Connection established event            */
+N#define TCP_EVT_CLOSE      2      /* Connection was properly closed          */
+N#define TCP_EVT_ABORT      3      /* Connection is for some reason aborted   */
+N#define TCP_EVT_ACK        4      /* Previously send data acknowledged       */
+N#define TCP_EVT_DATA       5      /* Data received event                     */
+N
+N/* TCP States */
+N#define TCP_STATE_FREE     0      /* Entry is free and unused                */
+N#define TCP_STATE_CLOSED   1      /* Entry allocated, socket still closed    */
+N#define TCP_STATE_LISTEN   2      /* Socket waiting for incoming connection  */
+N#define TCP_STATE_SYN_REC  3      /* SYN frame received                      */
+N#define TCP_STATE_SYN_SENT 4      /* SYN packet sent to establish a connect. */
+N#define TCP_STATE_FINW1    5      /* Tcp_close started FIN packet was sent   */
+N#define TCP_STATE_FINW2    6      /* Our FIN ack-ed, waiting for remote FIN  */
+N#define TCP_STATE_CLOSING  7      /* Received FIN independently of our FIN   */
+N#define TCP_STATE_LAST_ACK 8      /* Waiting for last ACK for our FIN        */
+N#define TCP_STATE_TWAIT    9      /* Timed waiting for 2MSL                  */
+N#define TCP_STATE_CONNECT  10     /* TCP Connection established              */
+N
+N/* DNS Callback Events */
+N#define DNS_EVT_SUCCESS    0      /* Host name successfully resolved         */
+N#define DNS_EVT_NONAME     1      /* DNS Error, no such name                 */
+N#define DNS_EVT_TIMEOUT    2      /* Timeout resolving host                  */
+N#define DNS_EVT_ERROR      3      /* Erroneous response packet               */
+N
+N/* DNS 'get_host_by_name()' result codes */
+N#define DNS_RES_OK         0      /* Function finished OK                    */
+N#define DNS_ERROR_BUSY     1      /* DNS Client busy, can't process request  */
+N#define DNS_ERROR_LABEL    2      /* Host name Label too long                */
+N#define DNS_ERROR_NAME     3      /* Host name loo long                      */
+N#define DNS_ERROR_NOSRV    4      /* Prim. DNS server not specified (0.0.0.0)*/
+N#define DNS_ERROR_UDPSEND  5      /* UDP Send frame error                    */
+N
+N/* SMTP Callback Events */
+N#define SMTP_EVT_SUCCESS   0      /* Email successfully sent                 */
+N#define SMTP_EVT_TIMEOUT   1      /* Timeout sending email                   */
+N#define SMTP_EVT_ERROR     2      /* Error when sending email                */
+N
+N/* ARP Cache Entry types */
+N#define ARP_FIXED_IP       0      /* Fixed IP adrs is refreshed after tout   */
+N#define ARP_TEMP_IP        1      /* Temp adrs is removed after timeout      */
+N
+Nextern void init_TcpNet (void);
+Nextern void main_TcpNet (void);
+Nextern void timer_tick (void);
+Nextern U8   udp_get_socket (U8 tos, U8 opt, 
+N                            U16 (*listener)(U8 socket, U8 *remip, U16 port, U8 *buf, U16 len));
+Nextern BOOL udp_release_socket (U8 socket);
+Nextern BOOL udp_open (U8 socket, U16 locport);
+Nextern BOOL udp_close (U8 socket);
+Nextern BOOL udp_mcast_ttl (U8 socket, U8 ttl);
+Nextern U8  *udp_get_buf (U16 size);
+Nextern BOOL udp_send (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 dlen);
+Nextern U8   tcp_get_socket (U8 type, U8 tos, U16 tout,
+N                            U16 (*listener)(U8 socket, U8 event, U8 *buf, U16 len));
+Nextern BOOL tcp_release_socket (U8 socket);
+Nextern BOOL tcp_listen (U8 socket, U16 locport);
+Nextern BOOL tcp_connect (U8 socket, U8 *remip, U16 remport, U16 locport);
+Nextern U8  *tcp_get_buf (U16 size);
+Nextern U16  tcp_max_dsize (U8 socket);
+Nextern BOOL tcp_check_send (U8 socket);
+Nextern U8   tcp_get_state (U8 socket);
+Nextern BOOL tcp_send (U8 socket, U8 *buf, U16 dlen);
+Nextern BOOL tcp_close (U8 socket);
+Nextern BOOL tcp_abort (U8 socket);
+Nextern void tcp_reset_window (U8 socket);
+Nextern BOOL arp_cache_ip (U8 *ipadr, U8 type);
+Nextern void ppp_listen (char const *user, char const *passw);
+Nextern void ppp_connect (char const *dialnum, char const *user, char const *passw);
+Nextern void ppp_close (void);
+Nextern BOOL ppp_is_up (void);
+Nextern void slip_listen (void);
+Nextern void slip_connect (char const *dialnum);
+Nextern void slip_close (void);
+Nextern BOOL slip_is_up (void);
+Nextern U8   get_host_by_name (U8 *hostn, void (*cbfunc)(U8 event, U8 *host_ip));
+Nextern BOOL smtp_connect (U8 *ipadr, U16 port, void (*cbfunc)(U8 event));
+Nextern void dhcp_disable (void);
+Nextern BOOL igmp_join (U8 *group_ip);
+Nextern BOOL igmp_leave (U8 *group_ip);
+Nextern BOOL snmp_trap (U8 *manager_ip, U8 gen_trap, U8 spec_trap, U16 *obj_list);
+Nextern BOOL snmp_set_community (const char *community);
+N#ifdef __cplusplus               // EC++
+S}
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N * end of file
+N *---------------------------------------------------------------------------*/
+N  
+N#endif
+N 
+L 16 "C:\Keil\ARM\RV31\INC\File_Config.h" 2
+N
+N/* FAT File Attributes */
+N#define ATTR_READ_ONLY   0x01
+N#define ATTR_HIDDEN      0x02
+N#define ATTR_SYSTEM      0x04
+N#define ATTR_VOLUME_ID   0x08
+N#define ATTR_DIRECTORY   0x10
+N#define ATTR_ARCHIVE     0x20
+N
+N/* Device System Type attribute */
+N#define FS_DEF           0x01           /* Default Drive attribute           */
+N#define FS_EMB           0x02           /* Embedded File System (F:,S:,R:)   */
+N#define FS_FAT           0x04           /* FAT File System      (M:,N:,U:)   */
+N#define FS_IOC           0x08           /* IO Control allowed   (M:,N:)      */
+N
+N/* SD/MMC Commands */
+N#define GO_IDLE_STATE    0              /* Reset card to idle state   MMC,SD */
+N#define SEND_OP_COND     1              /* Send Op.Cond. Register     MMC,-- */
+N#define ALL_SEND_CID     2              /* Send Card CID number       MMC,SD */
+N#define SET_REL_ADDR     3              /* Set Relative Address       MMC,SD */
+N#define SET_BUS_WIDTH    6              /* Set Bus Width 1bit/4bits   ---,SD */
+N#define SELECT_CARD      7              /* Select/Deselect the Card   MMC,SD */
+N#define SEND_IF_COND     8              /* Send Interface Condition   ---,SD */
+N#define SEND_CSD         9              /* Send Card Specific Data    MMC,SD */
+N#define SEND_CID         10             /* Send Card Identificat.Data MMC,SD */
+N#define STOP_TRANS       12             /* Stop Read or Write transm. MMC,SD */
+N#define SEND_STATUS      13             /* Send Status Resiger        MMC,SD */
+N#define SET_BLOCK_LEN    16             /* Set Block Length in bytes  MMC,SD */
+N#define READ_BLOCK       17             /* Read a Single Block        MMC,SD */
+N#define READ_MULT_BLOCK  18             /* Read Multiple Blocks       MMC,SD */
+N#define WRITE_BLOCK      24             /* Write a Block              MMC,SD */
+N#define WRITE_MULT_BLOCK 25             /* Write Multiple Blocks      MMC,SD */
+N#define SEND_APP_OP_COND 41             /* Send App. Op.Cond Register ---,SD */
+N#define APP_CMD          55             /* App.Specific Cmd follows   MMC,SD */
+N#define READ_OCR         58             /* Read OCR Register          MMC,SD */
+N#define CRC_ON_OFF       59             /* Turn CRC7 checking on/off  MMC,SD */
+N
+N/* Driver CheckMedia return bit definitions */
+N#define M_INSERTED       0x01           /* Media Detected                    */
+N#define M_PROTECTED      0x02           /* Media Write Protected             */
+N
+N/* Driver Init/Uninit parameter codes */
+N#define DM_IO            0              /* Init/Uninit IO peripherals        */
+N#define DM_MEDIA         1              /* Init/Uninit storage Media         */
+N
+N/* MCI Expected Command Response Codes */
+N#define RESP_NONE        0              /* No Response                       */
+N#define RESP_SHORT       1              /* Short Response (4-bytes)          */
+N#define RESP_LONG        2              /* Long Response  (16-bytes)         */
+N
+N/* MCI Bus Modes */
+N#define BUS_OPEN_DRAIN   0              /* Open Drain Card Bus mode          */
+N#define BUS_PUSH_PULL    1              /* Push-Pull Card Bus mode           */
+N
+N/* Driver SetDma parameter codes */
+N#define DMA_READ         0              /* SetDma for block read             */ 
+N#define DMA_WRITE        1              /* SetDma for block write            */
+N
+N/* NAND Configuration macros */
+N#define NAND_ADDR_CYCLES(b,p,s) (((b*p>65536) ? 3:2)+((s>528) ? 2:1))
+N#define NAND_BTT_SIZE(b)      ((b*3)/100)
+N#define NAND_SEC_PAGE(p)      (p/512)
+N#define NAND_SEC_BLOCK(b,p)   ((p/512)*b)
+N#define _DS_(b)               (b-(b*3)/100-1)
+N#define _EP_(p)               ((p/512)*128)
+N#define NAND_TSN_SIZE(b,p)    ((_DS_(b)+_EP_(p)-1)/_EP_(p))
+N
+N/* NAND Flash Commands (ONFI V1.0 and V2.2 mandatory) */
+N#define NAND_CMD_READ1ST      0x00     /* Read 1st Cycle                     */
+N#define NAND_CMD_CHRDCOL1ST   0x05     /* Change Read Column 1st Cycle       */
+N#define NAND_CMD_PROG2ND      0x10     /* Page Program 2nd Cycle             */
+N#define NAND_CMD_READ2ND      0x30     /* Read 2nd Cycle                     */
+N#define NAND_CMD_ERASE1ST     0x60     /* Block erase 1st Cycle              */
+N#define NAND_CMD_STATUS       0x70     /* Read Status                        */
+N#define NAND_CMD_PROG1ST      0x80     /* Page Program 1st Cycle             */
+N#define NAND_CMD_CHWRCOL      0x85     /* Change Write Column                */
+N#define NAND_CMD_READID       0x90     /* Read ID                            */
+N#define NAND_CMD_ERASE2ND     0xD0     /* Block erase 2nd cycle              */
+N#define NAND_CMD_CHRDCOL2ND   0xE0     /* Change Read Column 2nd Cycle       */
+N#define NAND_CMD_PARAMPAGE    0xEC     /* Read Parameter Page                */
+N#define NAND_CMD_RESET        0xFF     /* Reset command                      */
+N
+N/* NAND Status Flags Masks (ONFI V1.0 and V2.2) */
+N#define NAND_STAT_FAIL        0x01     /* Last command failed                */
+N#define NAND_STAT_FAILC       0x02     /* Command prior last failed          */
+N#define NAND_STAT_VSP         0x10     /* Vendor specified                   */
+N#define NAND_STAT_ARDY        0x20     /* Array operation in progress        */
+N#define NAND_STAT_RDY         0x60     /* LUN ready for another command      */
+N#define NAND_STAT_WP          0x80     /* Write protected                    */
+N
+N/* NTFL ECC Status Codes */
+N#define ECC_NOERR       0              /* ECC passed, no errors detected     */
+N#define ECC_CORRECTED   1              /* ECC failed, data was corrected     */
+N#define ECC_UNCORRECTED 2              /* ECC failed, data was not corrected */
+N
+N/* NTFL Error Codes */
+Ntypedef enum {
+N  RTV_NOERR = 0,                       /* No error                           */
+N  ERR_INVALID_PARAM,                   /* Invalid parameter                  */
+N
+N  ERR_FTL_ECC,                         /* ECC error on last page read        */
+N  ERR_FTL_WARN,                        /* Warning, data not reliable         */
+N  ERR_FTL_BB,                          /* Bad block                          */
+N  ERR_FTL_LBN,                         /* Wrong LBN                          */
+N  ERR_FTL_ALLOC,                       /* Block allocation error             */
+N  ERR_FTL_RANGE,                       /* BN to high                         */
+N  ERR_FTL_NOT_FOUND,                   /* Item not found                     */
+N  ERR_FTL_NOT_FOUND_EOB,               /* LSN not found, end of block        */
+N  ERR_FTL_FATAL,                       /* Fatal, undefined error             */
+N
+N  ERR_ECC_COR,                         /* ECC corrected the data             */
+N  ERR_ECC_UNCOR,                       /* ECC could not correct the data     */
+N
+N  ERR_NAND_PROG,                       /* Programming failed (flash status)  */
+N  ERR_NAND_ERASE,                      /* Erase verify failed (flash status) */
+N  ERR_NAND_HW_TOUT,                    /* NAND hardware timeout              */
+N  ERR_NAND_DMA_TOUT,                   /* DMA timeout                        */
+N  ERR_NAND_UNSUPPORTED,                /* Functionality not supported        */
+N} NAND_FTL_ERROR;
+N
+N#pragma push
+N#pragma anon_unions
+N
+N/* File Control Block structure */
+Ntypedef struct iob {
+N  U16  flags;                           /* File status flags                 */
+N  U32  fsize;                           /* FAT File Size                     */
+N  U32  fpos;                            /* FAT File Position Indicator       */
+N  void *vi;                             /* Volume Information [FAT,EF]       */
+N  union {
+N    struct {                            /* Embedded Flash variables          */
+N      U16 fileID;                       /* File Identification Number        */
+N      U16 fblock;                       /* Current Flash Block index         */
+N      U16 fidx;                         /* Current File Block index          */
+N      U16 nfidx;                        /* Next File Block index             */
+N      U32 fbot;                         /* Flash Block free space bottom     */
+N      U32 ftop;                         /* Flash Block free space top        */
+N    } efs;
+N    struct {                            /* FAT variables                     */
+N      U8  attrib;                       /* Attribute Flags                   */
+N      U8  currDatSect;                  /* Curr Data Sect Offs in Cluster    */
+N      U16 lastEntOffs;                  /* Entry (last) Record Offset        */
+N      U32 currDatClus;                  /* Current Data Cluster              */
+N      U32 firstClus;                    /* First Data Cluster                */
+N      U32 lastEntClus;                  /* Entry (last) Cluster              */
+N    } fat;
+N  };
+N} IOB;
+N#pragma pop
+N
+N/* Flash Device Configuration */
+Ntypedef struct DevConf {
+N  U32 bStart;                           /* Flash Block Start address         */
+N  U32 bEnd;                             /* Flash Block End address (bsize-4) */
+N} const EFS_CFG;
+N
+N/* FAT Volume Information struct */
+Ntypedef struct fatinfo {
+N  U32 BootRecSec;                       /* Boot Record Sector Offset         */
+N  U8  FatType;                          /* File System Fat type.             */
+N  U8  NumOfFat;                         /* Number of Fat tables              */
+N  U8  SecPerClus;                       /* Number of Sectors per Cluster     */
+N  U16 FatSize;                          /* Number of Sectors per FAT table   */
+N  U16 RsvdSecCnt;                       /* Number of Reserved Sectors        */
+N  U32 DskSize;                          /* Disk Size Sector Count            */
+N  U32 DataSecCnt;                       /* Number of Data Sectors            */
+N  U16 RootEntCnt;                       /* Maximum Root Directory entries    */
+N  U16 BytesPerSec;                      /* Sector Size in bytes              */
+N  U32 DataClusCnt;                      /* Data Cluster Count                */
+N  U16 RootDirAddr;                      /* Root Dir First Sector             */
+N  U16 RootSecCnt;                       /* Number of Sectors for Root dir    */
+N  U32 ClusSize;                         /* Cluster Size in bytes             */
+N  U16 EntsPerClus;                      /* Number of entries per cluster     */
+N                                        /* Added fields for FAT32            */
+N  U16 FAT32_ExtFlags;                   /* FAT extended flags                */
+N  U32 FAT32_RootClus;                   /* Root directory first cluster      */
+N  U16 FAT32_FSInfo;                     /* FSInfo structure sector number    */
+N  U16 FAT32_BkBootSec;                  /* Boot Record copy sector number    */
+N} FATINFO;
+N
+N/* FAT Sector Caching structure */
+Ntypedef struct fcache {
+N  U32 sect;                             /* Cached FAT sector number          */
+N  U8  *buf;                             /* FAT sector cache buffer           */
+N  BIT dirty;                            /* FAT table content modified        */
+N} FCACHE;
+N
+N/* Data Sector Caching structure */
+Ntypedef struct dcache {
+N  U32 sect;
+N  U32 csect;
+N  U8  *buf;
+N  U8  *cbuf;
+N  U8  nwr;
+N  U8  nrd;
+N} DCACHE;
+N
+N/* NTFL Block Index Cache */
+Ntypedef struct {
+N  U16 pbn;
+N  U16 lbn;
+N  U8  typ;
+N  U8  nextPg;                           /* Next page to be indexed           */
+N  U8  *pgIdx;
+N} BLOCK_CACHE;
+N
+N/* NTFL Page Cache */
+Ntypedef struct {
+N  U32 row;
+N  U8 *buf;
+N} PAGE_CACHE;
+N
+N/* NAND FTL Buffer Pointers Structure */
+Ntypedef struct {
+N  U32 CacheBS;                          /* Block slot for block caching      */
+N  U32 CachePS;                          /* Page slot for page caching        */
+N  U16 CachedBlocks;
+N  U16 CachedPages;
+N  BLOCK_CACHE *Block;
+N  PAGE_CACHE  *Page;
+N} NAND_FTL_CACHE;
+N
+N/* NAND Page Layout Configuration Structure */
+Ntypedef struct {
+N  U8  Pos_LSN;                          /* LSN position                      */
+N  U8  Pos_COR;                          /* Data in page corrupted marker     */
+N  U8  Pos_BBM;                          /* Bad Block marker position         */
+N  U8  Pos_ECC;                          /* First byte of ECC                 */
+N  U16 SectInc;                          /* Column increment till next sector */
+N  U16 SpareOfs;                         /* Spare area offset from begining   */
+N                                        /*  of the page                      */
+N  U16 SpareInc;                         /* Column increment till next spare  */  
+N} NAND_PG_LAY;
+N
+N/* NAND Flash Geometry and Layout */
+Ntypedef struct {  
+N  NAND_PG_LAY *PgLay;                   /* Page Layout Definitions           */
+N  U16 NumBlocks;                        /* Number of blocks per device       */
+N  U16 NumPages;                         /* Number of pages per block         */
+N  U16 PageSize;                         /* Page size                         */
+N  U16 SectorsPerBlock;                  /* Number of sectors per block       */
+N  U8  SectorsPerPage;                   /* Number of sectors per page        */
+N  U8  AddrCycles;                       /* Device address cycles             */
+N  U8  SwEccEn;                          /* Software ECC enabled              */
+N  U8  DrvInst;                          /* Driver Instance definition        */
+N} const NAND_DRV_CFG;
+N
+N/* NAND Configuration structure */
+Ntypedef struct {
+N  /* NAND Flash Geometry */
+N  NAND_DRV_CFG DrvCfg;
+N  /* Block Translation Table Space */
+N  U16 BttStartBn;                       /* First Physical Block              */
+N  U16 BttEndBn;                         /* Last Physical Block               */
+N  /* Data Space */
+N  U16 DataStartBn;                      /* First Physical Block              */
+N  U16 DataEndBn;                        /* Last Physical Block               */
+N  /* Buffer Sizes */  
+N  U16 NumCacheBlocks;
+N  U16 NumCachePages;
+N  U16 TsnTableSize;
+N  /* Page buffer & Caches */
+N  U8  *PgBuf;
+N  BLOCK_CACHE *BlockCache;
+N  U8  *BlockCacheBuf;
+N  PAGE_CACHE  *PageCache;
+N  U8  *PageCacheBuf;
+N  U32 *TsnTable;
+N} const NAND_FTL_CFG;
+N
+N/* Device driver mapping type */
+Ntypedef struct {
+N  void *dcb;                            /* Device Control block              */
+N  char id[3];                           /* Drive Name Identification         */
+N  U8   attr;                            /* File System attributes            */
+N} const FS_DEV;
+N
+N/* Media information */
+Ntypedef struct {
+N  U32  block_cnt;                       /* Total number of blocks            */
+N  U16  read_blen;                       /* Read block length                 */
+N  U16  write_blen;                      /* Write block length                */
+N} Media_INFO;
+N
+N/* FAT Drive Local variables */
+Ntypedef struct {
+N  U32  free_clus;
+N  U32  top_clus;
+N  U32  startDirClus;
+N  U32  firstEntClus;
+N  U16  firstEntOffs;
+N  U8   numOfEntries;
+N  BIT  in_root_1x;
+N  char name_buf[260];
+N} FATVAR;
+N
+N/* Embedded Flash Device driver */
+Ntypedef struct {
+N  BOOL (*Init)        (U32 adr, U32 clk);
+N  BOOL (*UnInit)      (void);
+N  BOOL (*ReadData)    (U32 adr, U32 sz, U8 *buf); /* Optional, =NULL for     */
+N                                        /* memory-mapped Parallel Flash      */
+N  BOOL (*ProgramPage) (U32 adr, U32 sz, U8 *buf);
+N  BOOL (*EraseSector) (U32 adr);
+N  BOOL (*EraseChip)   (void);           /* Optional, NULL if not existing    */
+N} const EFS_DRV;
+N
+N/* NAND Flash Device driver */
+Ntypedef struct {
+N  U32  (*Init)        (NAND_DRV_CFG *cfg);
+N  U32  (*UnInit)      (NAND_DRV_CFG *cfg);
+N  U32  (*PageRead)    (U32 row, U8 *buf, NAND_DRV_CFG *cfg);
+N  U32  (*PageWrite)   (U32 row, U8 *buf, NAND_DRV_CFG *cfg);
+N  U32  (*BlockErase)  (U32 row, NAND_DRV_CFG *cfg);
+N} const NAND_DRV;
+N
+N/* SPI Device driver */
+Ntypedef struct {
+N  BOOL (*Init)        (void);
+N  BOOL (*UnInit)      (void);
+N  U8   (*Send)        (U8 outb);
+N  BOOL (*SendBuf)     (U8 *buf, U32 sz);
+N  BOOL (*RecBuf)      (U8 *buf, U32 sz);
+N  BOOL (*BusSpeed)    (U32 kbaud);
+N  BOOL (*SetSS)       (U32 ss);
+N  U32  (*CheckMedia)  (void);           /* Optional, NULL if not existing    */
+N} const SPI_DRV;
+N
+N/* MCI Device driver */
+Ntypedef struct {
+N  BOOL (*Init)        (void);
+N  BOOL (*UnInit)      (void);
+N  void (*Delay)       (U32 us);
+N  BOOL (*BusMode)     (U32 mode);
+N  BOOL (*BusWidth)    (U32 width);
+N  BOOL (*BusSpeed)    (U32 kbaud);
+N  BOOL (*Command)     (U8  cmd, U32 arg, U32 resp_type, U32 *rp);
+N  BOOL (*ReadBlock)   (U32 bl, U8 *buf, U32 cnt);
+N  BOOL (*WriteBlock)  (U32 bl, U8 *buf, U32 cnt);
+N  BOOL (*SetDma)      (U32 mode, U8 *buf, U32 cnt); /* Optional, =NULL for   */
+N                                        /* local DMA or non DMA drivers      */ 
+N  U32  (*CheckMedia)  (void);           /* Optional, NULL if not existing    */
+N} const MCI_DRV;
+N
+N/* FAT Layer Device driver */
+Ntypedef struct {
+N  BOOL (*Init)        (U32 mode);
+N  BOOL (*UnInit)      (U32 mode);
+N  BOOL (*ReadSect)    (U32 sect, U8 *buf, U32 cnt);
+N  BOOL (*WriteSect)   (U32 sect, U8 *buf, U32 cnt);
+N  BOOL (*ReadInfo)    (Media_INFO *cfg);
+N  U32  (*CheckMedia)  (void);           /* Optional, NULL if not existing    */
+N} const FAT_DRV;
+N
+N/* MMC Device Control block */
+Ntypedef struct {
+N  U8    CardType;                       /* Memory Card Type                  */
+N  U32   SerNum;                         /* Serial Number of Memory Card      */
+N  SPI_DRV *spi;                         /* Registered SPI driver             */
+N} MMC_DEV;
+N
+N/* MCI Device Control block */
+Ntypedef struct {
+N  U8    CardType;                       /* Memory Card Type                  */
+N  U16   CardRCA;                        /* Relative Card Address             */
+N  U32   SerNum;                         /* Serial Number of Memory Card      */
+N  MCI_DRV *drv;                         /* Registered MCI driver             */
+N} MCI_DEV;
+N
+N/* NAND Device Control block */
+Ntypedef struct {
+N  NAND_PG_LAY PgLay;                    /* Page Layout definition            */
+N  U8  PageSectors;                      /* Number of sectors/page 1,4,8, ... */
+N  U8  SPP;                              /* Number of sectors/page            */
+N                                        /*  (2^n, n = SPP)                   */
+N  U8  PPB;                              /* Number of pages/block             */
+N                                        /*  (2^n, n = PPB)                   */
+N  U8  SPB;                              /* Number of sectors/block           */
+N                                        /*  (2^n, n = SPB)                   */
+N  U8  EPS;                              /* Entries/table sector              */
+N                                        /*  (2^n, n = EPS)                   */
+N  U8  LastECC;                          /* ECC status after last page read   */
+N  U16 LastDBN;                          /* Last allocated phy. block         */
+N                                        /*  in data area                     */
+N  U16 LastTBN;                          /* Last allocated phy. block         */
+N                                        /*  in table area                    */
+N  U32 CurrLBN;                          /* Current logical block number      */
+N  U32 GcLBN;                            /* Current logical block number used */
+N                                        /*  by forced GC                     */
+N  U16 PbnQ[3];                          /* Empty block queue                 */
+N  U16 BadBlockCnt;                      /* Bad Block Counter                 */
+N  U16 NumDataBlocks;                    /* Number of data blocks reported to */
+N                                        /*  file system                      */
+N  U8  *PgBuf;
+N  U32 *TsnTable;
+N  U16 TsnTableSize;
+N  NAND_FTL_CACHE Ca;
+N  NAND_FTL_CFG  *Cfg;
+N  NAND_DRV      *Drv;
+N} NAND_FTL_DEV;
+N
+N/* FAT Volume Info Control block */
+Ntypedef struct {
+N  U32     Status;                       /* Volume Status                     */
+N  FAT_DRV *drv;                         /* Registered FAT Device Driver      */
+N  U32     *CaBuf;                       /* Cache Buffer (FAT + Data)         */
+N  U32     CaSize;                       /* Cache Buffer size                 */
+N  FATINFO cfg;                          /* FAT Volume configuration          */
+N  FCACHE  fat;                          /* FAT table cache control           */
+N  DCACHE  ca;                           /* Data cache control                */
+N  FATVAR  lv;                           /* Local instance of FAT variables   */
+N} FAT_VI;
+N
+N/* Embedded Flash Volume Info Control block */
+Ntypedef struct {
+N  U32     Status;                       /* Volume Status                     */
+N  EFS_DRV *drv;                         /* Registered Device Driver          */
+N  U32     BaseAdr;                      /* Device Base Address               */
+N  U32     InitVal;                      /* Value for empty flash             */
+N  U32     NumSect;                      /* Number of Flash Sectors           */
+N  U32     Size;                         /* Device Size                       */
+N  EFS_CFG *DevCfg;                      /* Device Configuration              */
+N  U32     CpuClk;                       /* Cpu Clock Frequency               */
+N} EFS_VI;
+N
+N/* File_Lib.c module */
+Nextern void  fs_config (void);
+N
+N/* fs_sys.c module */
+Nextern int  __sys_open (const char *fname, int openmode);
+Nextern int  __sys_close (int handle);
+Nextern int  __sys_read (int handle, U8 *buf, U32 len);
+Nextern int  __sys_write (int handle, const U8 *buf, U32 len);
+Nextern int  __sys_ensure (int handle);
+Nextern int  __sys_seek (int handle, U32 pos);
+Nextern long __sys_flen (int handle);
+N
+N/* Macros for compatibility with old version of 'retarget.c' */
+N#define __fopen     __sys_open
+N#define __fclose    __sys_close
+N#define __read      __sys_read
+N#define __write     __sys_write
+N#define __setfpos   __sys_seek
+N#define __flushbuf  __sys_ensure
+N#define __get_flen  __sys_flen
+N
+N/* fs_fat.c module */
+Nextern int  fat_init (FAT_VI *vi);
+Nextern BOOL fat_find (const char *fn, IOB *fcb);
+Nextern BOOL fat_seek (IOB *fcb, U32 pos);
+Nextern U32  fat_read (IOB *fcb, U8 *buf, U32 len);
+Nextern BOOL fat_write (IOB *fcb, const U8 *buf, U32 len);
+Nextern U64  fat_free (FAT_VI *vi);
+Nextern BOOL fat_delete (const char *fn, IOB *fcb);
+Nextern BOOL fat_wclose (IOB *fcb);
+Nextern BOOL fat_rename (const char *old, const char *newn, IOB *fcb);
+Nextern BOOL fat_create (const char *fn, IOB *fcb);
+Nextern BOOL fat_format (FAT_VI *vi, const char *label);
+Nextern BOOL fat_ffind  (const char *fn, FINFO *info, IOB *fcb);
+N
+N/* fs_ioc.c module */
+Nextern FAT_VI *ioc_getcb (const char *drive);
+Nextern int  ioc_init (FAT_VI *vi);
+Nextern int  ioc_uninit (FAT_VI *vi);
+Nextern BOOL ioc_read_info (Media_INFO *info, FAT_VI *vi);
+Nextern BOOL ioc_read_sect (U32 sect, U8 *buf, U32 cnt, FAT_VI *vi);
+Nextern BOOL ioc_write_sect (U32 sect, U8 *buf, U32 cnt, FAT_VI *vi);
+N
+N/* fs_mmc.c module */
+Nextern BOOL mmc_Init (U32 mode, MMC_DEV *mmc);
+Nextern BOOL mmc_UnInit (U32 mode, MMC_DEV *mmc);
+Nextern BOOL mmc_ReadSector (U32 sect, U8 *buf, U32 cnt, MMC_DEV *mmc);
+Nextern BOOL mmc_WriteSector (U32 sect, U8 *buf, U32 cnt, MMC_DEV *mmc);
+Nextern BOOL mmc_ReadInfo (Media_INFO *info, MMC_DEV *mmc);
+N
+N/* fs_mci.c module */
+Nextern BOOL mci_Init (U32 mode, MCI_DEV *mci);
+Nextern BOOL mci_UnInit (U32 mode, MCI_DEV *mci);
+Nextern BOOL mci_ReadSector (U32 sect, U8 *buf, U32 cnt, MCI_DEV *mci);
+Nextern BOOL mci_WriteSector (U32 sect, U8 *buf, U32 cnt, MCI_DEV *mci);
+Nextern BOOL mci_ReadInfo (Media_INFO *info, MCI_DEV *mci);
+N
+N/* fs_nftl.c module */
+Nextern BOOL ftl_Init (U32 mode, NAND_FTL_DEV *ftl);
+Nextern BOOL ftl_UnInit (U32 mode, NAND_FTL_DEV *ftl);
+Nextern U32  ftl_ReadSect (U32 lsn, U8 *buf, U32 cnt, NAND_FTL_DEV *ftl);
+Nextern U32  ftl_WriteSect(U32 lsn, U8 *buf, U32 cnt, NAND_FTL_DEV *ftl);
+Nextern BOOL ftl_Format (NAND_FTL_DEV *ftl);
+Nextern BOOL ftl_ReadInfo (Media_INFO *info, NAND_FTL_DEV *ftl);
+N
+N/* fs_efs.c module */
+Nextern BOOL efs_rename (const char *filename, IOB *fcb);
+Nextern BOOL efs_create (const char *fname, IOB *fcb);
+Nextern BOOL efs_delete (IOB *fcb);
+Nextern U32  efs_free (EFS_VI *vi);
+Nextern BOOL efs_format (EFS_VI *vi);
+Nextern BOOL efs_ffind (FINFO *info, IOB *fcb);
+Nextern BOOL efs_wclose (IOB *fcb);
+Nextern U32  efs_read (IOB *fcb, U8 *buf, U32 len);
+Nextern BOOL efs_write (IOB *fcb, const U8 *buf, U32 len);
+Nextern BOOL efs_ensure (IOB *fcb);
+Nextern BOOL efs_seek (IOB *fcb, U32 pos);
+Nextern void efs_fsize (IOB *fcb);
+Nextern BOOL efs_find (const char *name, IOB *fcb);
+Nextern int  efs_analyse (EFS_VI *vi);
+Nextern BOOL efs_check (EFS_VI *vi);
+Nextern BOOL efs_defrag (IOB *fcb);
+N
+N/* fs_time.c module */
+Nextern U32  fs_get_time (void);
+Nextern U32  fs_get_date (void);
+N
+N#endif
+N
+L 13 "src\file_system\File_Config.c" 2
+N
+N//-------- <<< Use Configuration Wizard in Context Menu >>> -----------------
+N//
+N// <h>File System
+N// ==============
+N// <i> Define File System global parameters
+N
+N//   <o>Number of open files <4-16>
+N//   <i>Define number of files that can be
+N//   <i>opened at the same time.
+N//   <i>Default: 8
+N#define N_FILES     8
+N
+N//   <o>CPU Clock Frequency [Hz]<0-1000000000>
+N//   <i>Define the CPU Clock frequency used for
+N//   <i>flash programming and erasing.
+N#define CPU_CLK     100000000
+N
+N// </h>
+N// <e>Flash Drive
+N// ==============
+N// <i>Enable Embedded Flash Drive [F:]
+N#define FL0_EN      0
+N
+N//   <o>Base address <0x0-0xFFFFF000:0x1000>
+N//   <i>Define the target device Base address
+N//   <i>Default: 0x80000000
+N#define FL0_BADR    0x80000000
+N
+N//   <o>Device Size <0x4000-0xFFFFF000:0x4000>
+N//   <i>Define the size of Flash device in bytes
+N//   <i>Default: 0x100000 (1MB)
+N#define FL0_SIZE    0x0200000
+N
+N//   <o>Content of Erased Memory <0=>0x00 <0xFF=>0xFF
+N//   <i>Define the initial value for erased Flash data
+N//   <i>Default: 0xFF
+N#define FL0_INITV   0xFF
+N
+N//   <s.80>Device Description file
+N//   <i>Specify a file name with a relative path
+N//   <i>Default: FS_FlashDev.h
+N#define FL0_HFILE   "FS_FlashDev.h"
+N
+N//   <q>Default Drive [F:]
+N//   <i>Used when Drive letter not specified
+N#define FL0_DEF     1
+N
+N// </e>
+N// <e>SPI Flash Drive
+N// ==================
+N// <i>Enable SPI Flash Drive [S:]
+N#define SF0_EN      0
+N
+N//   <o>Device Size <0x10000-0xFFFFF000:0x8000>
+N//   <i>Define the size of SPI Flash device in bytes
+N//   <i>Default: 0x100000 (1MB)
+N#define SF0_SIZE    0x0200000
+N
+N//   <o>Content of Erased Memory <0=>0x00 <0xFF=>0xFF
+N//   <i>Define the initial value for erased Flash data
+N//   <i>Default: 0xFF
+N#define SF0_INITV   0xFF
+N
+N//   <s.80>Device Description file
+N//   <i>Specify a file name with a relative path
+N//   <i>Default: FS_SPI_FlashDev.h
+N#define SF0_HFILE   "FS_SPI_FlashDev.h"
+N
+N//   <q>Default Drive [S:]
+N//   <i>Used when Drive letter not specified
+N#define SF0_DEF     0
+N
+N// </e>
+N// <e>RAM Drive
+N// ============
+N// <i>Enable Embedded RAM Drive  [R:]
+N#define RAM0_EN     0
+N
+N//   <o>Device Size <0x4000-0xFFFFF000:0x4000>
+N//   <i>Define the size of RAM device in bytes
+N//   <i>Default: 0x40000
+N#define RAM0_SIZE   0x004000
+N
+N//   <o>Number of Sectors <8=>8 <16=>16 <32=>32 <64=>64 <128=>128
+N//   <i>Define number of virtual sectors for RAM device
+N//   <i>Default: 32
+N#define RAM0_NSECT  64
+N
+N//   <e>Relocate Device Buffer
+N//   <i>Locate RAM Device Buffer at a specific address.
+N//   <i>If not enabled, the linker selects base address.
+N#define RAM0_RELOC  1
+N
+N//   <o>Base address <0x0-0xFFFFF000:0x1000>
+N//   <i>Define the target device Base address.
+N//   <i>Default: 0x81000000
+N#define RAM0_BADR   0x81010000
+N
+N//   </e>
+N//   <q>Default Drive [R:]
+N//   <i>Used when Drive letter not specified
+N#define RAM0_DEF    0
+N
+N// </e>
+N// <e>Memory Card Drive 0
+N// ======================
+N// <i>Enable Memory Card Drive  [M0:]
+N#define MC0_EN      1
+N
+N//   <o>Bus Mode <0=>SD-Native <1=>SPI
+N//   <i>Define Memory Card bus interface mode.
+N//   <i>SD-Native mode needs MCI peripheral.
+N//   <i>SPI mode uses SD Card in SPI mode.
+N#define MC0_SPI     1
+N          
+N//   <o>File System Cache <0=>OFF <1=>1 KB <2=>2 KB <4=>4 KB
+N//                        <8=>8 KB <16=>16 KB <32=>32 KB
+N//   <i>Define System Cache buffer size for file IO. 
+N//   <i>Increase this number for faster r/w access.
+N//   <i>Default: 4 kB
+N#define MC0_CASZ    2
+N
+N//   <e>Relocate Cache Buffer
+N//   <i>Locate Cache Buffer at a specific address.
+N//   <i>Some devices like NXP LPC23xx require a Cache buffer
+N//   <i>for DMA transfer located at specific address.
+N#define MC0_RELOC   0
+N
+N//   <o>Base address <0x0000-0xFFFFFE00:0x200>
+N//   <i>Define the Cache buffer base address.
+N//   <i>For LPC23xx/24xx devices this is USB RAM
+N//   <i>starting at 0x7FD00000.
+N#define MC0_CADR    0x7FD00000
+N
+N//   </e>
+N//   <q>Default Drive [M0:]
+N//   <i>Used when Drive letter not specified
+N#define MC0_DEF     1
+N
+N// </e>
+N// <e>Memory Card Drive 1
+N// ======================
+N// <i>Enable Memory Card Drive  [M1:]
+N#define MC1_EN      0
+N
+N//   <o>Bus Mode <0=>SD-Native <1=>SPI
+N//   <i>Define Memory Card bus interface mode.
+N//   <i>SD-Native mode needs MCI peripheral.
+N//   <i>SPI mode uses SD Card in SPI mode.
+N#define MC1_SPI     1
+N          
+N//   <o>File System Cache <0=>OFF <1=>1 KB <2=>2 KB <4=>4 KB
+N//                        <8=>8 KB <16=>16 KB <32=>32 KB
+N//   <i>Define System Cache buffer size for file IO. 
+N//   <i>Increase this number for faster r/w access.
+N//   <i>Default: 4 kB
+N#define MC1_CASZ    0
+N
+N//   <e>Relocate Cache Buffer
+N//   <i>Locate Cache Buffer at a specific address.
+N//   <i>Some devices like NXP LPC23xx require a Cache buffer
+N//   <i>for DMA transfer located at specific address.
+N#define MC1_RELOC   0
+N
+N//   <o>Base address <0x0000-0xFFFFFE00:0x200>
+N//   <i>Define the Cache buffer base address.
+N//   <i>For LPC23xx/24xx devices this is USB RAM
+N//   <i>starting at 0x7FD00000.
+N#define MC1_CADR    0x7FD00000
+N
+N//   </e>
+N//   <q>Default Drive [M1:]
+N//   <i>Used when Drive letter not specified
+N#define MC1_DEF     0
+N
+N// </e>
+N// <e>USB Flash Drive 0
+N// ====================
+N// <i>Enable USB Flash Drive  [U0:]
+N#define USB0_EN     0
+N
+N//   <o>File System Cache <0=>OFF <1=>1 KB <2=>2 KB <4=>4 KB
+N//                        <8=>8 KB <16=>16 KB <32=>32 KB
+N//   <i>Define System Cache buffer size for file IO. 
+N//   <i>Increase this number for faster r/w access.
+N//   <i>Default: 4 kB
+N#define USB0_CASZ   4
+N
+N//   <q>Default Drive [U0:]
+N//   <i>Used when Drive letter not specified
+N#define USB0_DEF    0
+N
+N// </e>
+N// <e>USB Flash Drive 1
+N// ====================
+N// <i>Enable USB Flash Drive  [U1:]
+N#define USB1_EN     0
+N
+N//   <o>File System Cache <0=>OFF <1=>1 KB <2=>2 KB <4=>4 KB
+N//                        <8=>8 KB <16=>16 KB <32=>32 KB
+N//   <i>Define System Cache buffer size for file IO. 
+N//   <i>Increase this number for faster r/w access.
+N//   <i>Default: 4 kB
+N#define USB1_CASZ   8
+N
+N//   <q>Default Drive [U1:]
+N//   <i>Used when Drive letter not specified
+N#define USB1_DEF    0
+N
+N// </e>
+N// <e>NAND Flash Drive
+N// ===================
+N// <i>Enable NAND Flash Drive  [N:]
+N#define NAND0_EN    0
+N
+N//   <o>Page size  <528=> 512 + 16 bytes
+N//                 <2112=>2048 + 64 bytes
+N//                 <4224=>4096 + 128 bytes
+N//                 <8448=>8192 + 256 bytes
+N//   <i>Define program Page size in bytes (User + Spare area).
+N#define NAND0_PGSZ  2112
+N
+N//   <o>Block Size <8=>8 pages <16=>16 pages <32=>32 pages
+N//                 <64=>64 pages <128=>128 pages <256=>256 pages
+N//   <i>Define number of pages in a block.
+N#define NAND0_PGCNT 32
+N
+N//   <o>Device Size [blocks] <512-32768>
+N//   <i>Define number of blocks in NAND Flash device.
+N#define NAND0_BLCNT 512
+N
+N//   <o>Page Caching <0=>OFF <1=>1 page <2=>2 pages <4=>4 pages
+N//                   <8=>8 pages <16=>16 pages <32=>32 pages
+N//   <i>Define number of cached Pages.
+N//   <i>Default: 4 pages
+N#define NAND0_CAPG  4
+N
+N//   <o>Block Indexing <0=>OFF <1=>1 block <2=>2 blocks <4=>4 blocks
+N//                     <8=>8 blocks <16=>16 blocks <32=>32 blocks
+N//                     <64=>64 blocks <128=>128 blocks <256=>256 blocks
+N//   <i>Define number of indexed Flash Blocks.
+N//   <i>Increase this number for better performance.
+N//   <i>Default: 16 blocks
+N#define NAND0_CABL  16
+N
+N//   <o>Software ECC <0=>None <1=>Hamming (SLC)
+N//   <i>Enable software ECC calculation only,
+N//   <i>if not supported by hardware.
+N#define NAND0_SWECC 0
+N
+N//   <o>File System Cache <0=>OFF <1=>1 KB <2=>2 KB <4=>4 KB
+N//                        <8=>8 KB <16=>16 KB <32=>32 KB
+N//   <i>Define System Cache buffer size for file IO. 
+N//   <i>Increase this number for faster r/w access.
+N//   <i>Default: 4 kB
+N#define NAND0_CASZ  4
+N
+N//   <e>Relocate Cache Buffers
+N//   <i>Use this option to locate Cache buffers 
+N//   <i>at specific address in RAM or SDRAM.
+N#define NAND0_RELOC 0
+N
+N//     <o>Base address <0x0000-0xFFFFFE00:0x200>
+N//     <i>Define base address for Cache Buffers.
+N#define NAND0_CADR  0x80000000
+N
+N//   </e>
+N//   <q>Default Drive [N:]
+N//   <i>Used when Drive letter not specified
+N#define NAND0_DEF   0
+N
+N// </e>
+N
+N//------------- <<< end of configuration section >>> -----------------------
+N
+N#ifndef  __NO_FILE_LIB_C
+N#include <File_lib.c>
+L 1 "C:\Keil\ARM\RV31\INC\File_lib.c" 1
+N/*----------------------------------------------------------------------------
+N *      RL-ARM - FlashFS
+N *----------------------------------------------------------------------------
+N *      Name:    FILE_LIB.C
+N *      Purpose: FlashFS System Configuration
+N *      Rev.:    V4.20
+N *----------------------------------------------------------------------------
+N *      This code is part of the RealView Run-Time Library.
+N *      Copyright (c) 2004-2011 KEIL - An ARM Company. All rights reserved.
+N *---------------------------------------------------------------------------*/
+N
+N#include <absacc.h>
+L 1 "C:\Keil\ARM\RV31\INC\absacc.h" 1
+N/* absacc.h: header file that allows absolute variable location at C level */
+N/* Copyright 2006-2007 ARM Limited. All rights reserved.                        */
+N/* version 1.01 */
+N
+N
+N#ifndef __at
+N#define __at(_addr) __attribute__ ((at(_addr)))
+N
+N#endif
+N
+N#ifndef __section
+N#define __section(_name) __attribute__ ((section(_name)))
+N
+N#endif
+L 13 "C:\Keil\ARM\RV31\INC\File_lib.c" 2
+N
+N#pragma thumb
+N#pragma O3
+N
+N/*----------------------------------------------------------------------------
+N *      Library for File_Config.c
+N *---------------------------------------------------------------------------*/
+N
+N/* If MC1 drive not defined */
+N#ifndef MC1_EN
+S #define MC1_EN   0
+S #define MC1_DEF  0
+N#endif
+N
+N/* If USB1 drive not defined */
+N#ifndef USB1_EN
+S #define USB1_EN  0
+S #define USB1_DEF 0
+N#endif
+N
+N/* Check number of enabled drives */
+N#define FS_NDRV (FL0_EN   +                 \
+N                 SF0_EN   +                 \
+N                 RAM0_EN  +                 \
+N                 MC0_EN   + MC1_EN  +       \
+N                 USB0_EN  + USB1_EN +       \
+N                 NAND0_EN)    
+X#define FS_NDRV (FL0_EN   +                                  SF0_EN   +                                  RAM0_EN  +                                  MC0_EN   + MC1_EN  +                        USB0_EN  + USB1_EN +                        NAND0_EN)    
+N#if (FS_NDRV == 0)
+X#if ((0 + 0 + 0 + 1 + 0 + 0 + 0 + 0) == 0)
+S #error all drives disabled in configuration
+N#endif
+N
+N/* Check Default drive settings */
+N#define __DEF  ((FL0_DEF   & FL0_EN)  +                          \
+N                (SF0_DEF   & SF0_EN)  +                          \
+N                (RAM0_DEF  & RAM0_EN) +                          \
+N                (MC0_DEF   & MC0_EN)  + (MC1_DEF   & MC1_EN)  +  \
+N                (USB0_DEF  & USB0_EN) + (USB1_DEF  & USB1_EN) +  \
+N                (NAND0_DEF & NAND0_EN))
+X#define __DEF  ((FL0_DEF   & FL0_EN)  +                                          (SF0_DEF   & SF0_EN)  +                                          (RAM0_DEF  & RAM0_EN) +                                          (MC0_DEF   & MC0_EN)  + (MC1_DEF   & MC1_EN)  +                  (USB0_DEF  & USB0_EN) + (USB1_DEF  & USB1_EN) +                  (NAND0_DEF & NAND0_EN))
+N#if (__DEF == 0)
+X#if (((1 & 0) + (0 & 0) + (0 & 0) + (1 & 1) + (0 & 0) + (0 & 0) + (0 & 0) + (0 & 0)) == 0)
+S #error default drive not specified
+S#elif (__DEF > 1)
+X#elif (((1 & 0) + (0 & 0) + (0 & 0) + (1 & 1) + (0 & 0) + (0 & 0) + (0 & 0) + (0 & 0)) > 1)
+S #error multiple default drives enabled
+N#endif
+N
+N/* Check FS usage */
+N#define EFS_USE (FL0_EN + SF0_EN + RAM0_EN)
+N#define FAT_USE (MC0_EN + MC1_EN + USB0_EN + USB1_EN + NAND0_EN)
+N
+N/* Memory resources allocated by the Flash File System */
+Nstruct iob _iob[N_FILES];
+Xstruct iob _iob[8];
+N
+N/* Exported Defines to other modules */
+NU16 const _NFILE   = N_FILES;
+XU16 const _NFILE   = 8;
+NU16 const _NDRV    = FS_NDRV;
+XU16 const _NDRV    = (0 + 0 + 0 + 1 + 0 + 0 + 0 + 0);
+N
+N/*----------------------------------------------------------------------------
+N *  Parallel Flash device FL0 configuration
+N *---------------------------------------------------------------------------*/
+N#if (FL0_EN)
+X#if (0)
+S extern EFS_DRV fl0_drv;
+S
+S  /* Parallel Flash Device Configuration Table */
+S #define  DFB(sz,adr)   { (U32)adr+FL0_BADR, ((U32)(adr+sz)-4)+FL0_BADR }
+S #include FL0_HFILE
+S
+S static EFS_CFG fl0_cfg [FL_NSECT] = { FLASH_DEVICE };
+S static EFS_VI  fl0_vol;
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N *  SPI Flash device SF0 configuration
+N *---------------------------------------------------------------------------*/
+N#if (SF0_EN)
+X#if (0)
+S extern EFS_DRV sf0_drv;
+S
+S #define DSB(size,badr)   { (U32)badr, ((U32)(badr+size)-4) }
+S #include SF0_HFILE
+S
+S /* Flash Device Configuration Table */
+S static EFS_CFG sf0_cfg [SF_NSECT] = { SPI_FLASH_DEVICE };
+S static EFS_VI  sf0_vol;
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N *  RAM device RAM0 configuration
+N *---------------------------------------------------------------------------*/
+N#if (RAM0_EN)
+X#if (0)
+S #define RBS        ((RAM0_SIZE / RAM0_NSECT) & ~3)
+S #define DRB(n)     {(U32)RBS*n+RAM0_BADR, ((U32)(RBS*(n+1))-4)+RAM0_BADR}
+S
+S /* Ram Device Configuration Table */
+S static EFS_CFG ram0_cfg [RAM0_NSECT] = {
+S  DRB(0),  DRB(1),  DRB(2),  DRB(3),  DRB(4),  DRB(5),  DRB(6),  DRB(7),
+S #if RAM0_NSECT > 8
+S  DRB(8),  DRB(9),  DRB(10), DRB(11), DRB(12), DRB(13), DRB(14), DRB(15),
+S #endif
+S #if RAM0_NSECT > 16
+S  DRB(16), DRB(17), DRB(18), DRB(19), DRB(20), DRB(21), DRB(22), DRB(23),
+S  DRB(24), DRB(25), DRB(26), DRB(27), DRB(28), DRB(29), DRB(30), DRB(31),
+S #endif
+S #if RAM0_NSECT > 32
+S  DRB(32), DRB(33), DRB(34), DRB(35), DRB(36), DRB(37), DRB(38), DRB(39),
+S  DRB(40), DRB(41), DRB(42), DRB(43), DRB(44), DRB(45), DRB(46), DRB(47),
+S  DRB(48), DRB(49), DRB(50), DRB(51), DRB(52), DRB(53), DRB(54), DRB(55),
+S  DRB(56), DRB(57), DRB(58), DRB(59), DRB(60), DRB(61), DRB(62), DRB(63),
+S #endif
+S #if RAM0_NSECT > 64
+S  DRB(64), DRB(65), DRB(66), DRB(67), DRB(68), DRB(69), DRB(70), DRB(71),
+S  DRB(72), DRB(73), DRB(74), DRB(75), DRB(76), DRB(77), DRB(78), DRB(79),
+S  DRB(80), DRB(81), DRB(82), DRB(83), DRB(84), DRB(85), DRB(86), DRB(87),
+S  DRB(88), DRB(89), DRB(90), DRB(91), DRB(92), DRB(93), DRB(94), DRB(95),
+S  DRB(96), DRB(97), DRB(98), DRB(99), DRB(100),DRB(101),DRB(102),DRB(103),
+S  DRB(104),DRB(105),DRB(106),DRB(107),DRB(108),DRB(109),DRB(110),DRB(111),
+S  DRB(112),DRB(113),DRB(114),DRB(115),DRB(116),DRB(117),DRB(118),DRB(119),
+S  DRB(120),DRB(121),DRB(122),DRB(123),DRB(124),DRB(125),DRB(126),DRB(127),
+S #endif
+S };
+S #if (RAM0_RELOC == 1)
+S  #define __AT_RAM0  __at(RAM0_BADR)
+S #else
+S  #define __AT_RAM0
+S #endif
+S
+S /* RAM Device data buffer */
+S static U32 ram0_buf[(RAM0_SIZE/4)] __AT_RAM0;
+S static EFS_VI ram0_vol;
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N *  Memory Card device MC0 configuration
+N *---------------------------------------------------------------------------*/
+N#if (MC0_EN)
+X#if (1)
+N #if (MC0_RELOC == 1)
+X #if (0 == 1)
+S  #define __AT_MC0  __at(MC0_CADR)
+N #else
+N  #define __AT_MC0
+N #endif
+N /* MC0 Cache Buffer for Data and FAT Caching */
+N static U32 mc0_cache[(MC0_CASZ+1) * 256] __AT_MC0;
+X static U32 mc0_cache[(2+1) * 256] ;
+N static FAT_VI mc0_vol;
+N
+N #if (MC0_SPI == 0)
+X #if (1 == 0)
+S  /* SD Native bus mode */
+S  extern MCI_DRV mci0_drv;
+S  static MCI_DEV mci0_dev;
+S  #define MC0_INIT(m)      mci_Init (m,&mci0_dev)
+S  #define MC0_UNINIT(m)    mci_UnInit (m,&mci0_dev)
+S  #define MC0_RDSEC(s,b,c) mci_ReadSector (s,b,c,&mci0_dev)
+S  #define MC0_WRSEC(s,b,c) mci_WriteSector (s,b,c,&mci0_dev)
+S  #define MC0_RDINFO(i)    mci_ReadInfo (i,&mci0_dev)
+S  #define MC0_CHKMEDIA     mci0_drv.CheckMedia
+N #else
+N  /* SPI bus mode */
+N    
+N  extern SPI_DRV spi0_drv;
+N  static MMC_DEV mmc0_dev;
+N  #define MC0_INIT(m)      mmc_Init (m,&mmc0_dev)
+N  #define MC0_UNINIT(m)    mmc_UnInit (m,&mmc0_dev)
+N  #define MC0_RDSEC(s,b,c) mmc_ReadSector (s,b,c,&mmc0_dev)
+N  #define MC0_WRSEC(s,b,c) mmc_WriteSector (s,b,c,&mmc0_dev)
+N  #define MC0_RDINFO(i)    mmc_ReadInfo (i,&mmc0_dev)
+N  #define MC0_CHKMEDIA     spi0_drv.CheckMedia
+N  
+N #endif
+N
+N  /* MC0 wrapper functions */
+N  static BOOL mc0_Init (U32 mode) {
+N    return (MC0_INIT (mode));
+X    return (mmc_Init (mode,&mmc0_dev));
+N  }
+N  static BOOL mc0_UnInit (U32 mode) {
+N    return (MC0_UNINIT (mode));
+X    return (mmc_UnInit (mode,&mmc0_dev));
+N  }
+N  static BOOL mc0_RdSect (U32 sect, U8 *buf, U32 cnt) {
+N    return (MC0_RDSEC (sect, buf, cnt));
+X    return (mmc_ReadSector (sect,buf,cnt,&mmc0_dev));
+N  }
+N  static BOOL mc0_WrSect (U32 sect, U8 *buf, U32 cnt) {
+N    return (MC0_WRSEC (sect, buf, cnt));
+X    return (mmc_WriteSector (sect,buf,cnt,&mmc0_dev));
+N  }
+N  static BOOL mc0_RdInfo (Media_INFO *info) {
+N    return (MC0_RDINFO (info));
+X    return (mmc_ReadInfo (info,&mmc0_dev));
+N  }
+N  static U32 mc0_ChkMedia (void) {
+N    if (!MC0_CHKMEDIA) return (M_INSERTED);
+X    if (!spi0_drv . CheckMedia) return (0x01);
+N    return (MC0_CHKMEDIA());
+X    return (spi0_drv . CheckMedia());
+N  }
+N
+N  /* MC0 FAT device driver */
+N  FAT_DRV mc0_drv = {
+N    mc0_Init,
+N    mc0_UnInit,
+N    mc0_RdSect,
+N    mc0_WrSect,
+N    mc0_RdInfo,
+N    mc0_ChkMedia,
+N  };
+N#endif
+N 
+N/*----------------------------------------------------------------------------
+N *  Memory Card device MC1 configuration
+N *---------------------------------------------------------------------------*/
+N#if (MC1_EN)
+X#if (0)
+S #if (MC1_RELOC == 1)
+S  #define __AT_MC1  __at(MC1_CADR)
+S #else
+S  #define __AT_MC1
+S #endif
+S /* MC1 Cache Buffer for Data and FAT Caching */
+S static U32 mc1_cache[(MC1_CASZ+1) * 256] __AT_MC1;
+S static FAT_VI mc1_vol;
+S
+S #if (MC1_SPI == 0)
+S  /* SD Native bus mode */
+S  extern MCI_DRV mci1_drv;
+S  static MCI_DEV mci1_dev;
+S  #define MC1_INIT(m)      mci_Init (m,&mci1_dev)
+S  #define MC1_UNINIT(m)    mci_UnInit (m,&mci1_dev)
+S  #define MC1_RDSEC(s,b,c) mci_ReadSector (s,b,c,&mci1_dev)
+S  #define MC1_WRSEC(s,b,c) mci_WriteSector (s,b,c,&mci1_dev)
+S  #define MC1_RDINFO(i)    mci_ReadInfo (i,&mci1_dev)
+S  #define MC1_CHKMEDIA     mci1_drv.CheckMedia
+S #else
+S  /* SPI bus mode */
+S  extern SPI_DRV spi1_drv;
+S  static MMC_DEV mmc1_dev;
+S  #define MC1_INIT(m)      mmc_Init (m,&mmc1_dev)
+S  #define MC1_UNINIT(m)    mmc_UnInit (m,&mmc1_dev)
+S  #define MC1_RDSEC(s,b,c) mmc_ReadSector (s,b,c,&mmc1_dev)
+S  #define MC1_WRSEC(s,b,c) mmc_WriteSector (s,b,c,&mmc1_dev)
+S  #define MC1_RDINFO(i)    mmc_ReadInfo (i,&mmc1_dev)
+S  #define MC1_CHKMEDIA     spi1_drv.CheckMedia
+S #endif
+S
+S  /* MC1 wrapper functions */
+S  static BOOL mc1_Init (U32 mode) {
+S    return (MC1_INIT (mode));
+S  }
+S  static BOOL mc1_UnInit (U32 mode) {
+S    return (MC1_UNINIT (mode));
+S  }
+S  static BOOL mc1_RdSect (U32 sect, U8 *buf, U32 cnt) {
+S    return (MC1_RDSEC (sect, buf, cnt));
+S  }
+S  static BOOL mc1_WrSect (U32 sect, U8 *buf, U32 cnt) {
+S    return (MC1_WRSEC (sect, buf, cnt));
+S  }
+S  static BOOL mc1_RdInfo (Media_INFO *info) {
+S    return (MC1_RDINFO (info));
+S  }
+S  static U32 mc1_ChkMedia (void) {
+S    if (!MC1_CHKMEDIA) return (M_INSERTED);
+S    return (MC1_CHKMEDIA());
+S  }
+S
+S  /* MC1 FAT device driver */
+S  FAT_DRV mc1_drv = {
+S    mc1_Init,
+S    mc1_UnInit,
+S    mc1_RdSect,
+S    mc1_WrSect,
+S    mc1_RdInfo,
+S    mc1_ChkMedia
+S  };
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N *  USB Flash device USB0 configuration
+N *---------------------------------------------------------------------------*/
+N#if (USB0_EN)
+X#if (0)
+S extern FAT_DRV usb0_drv;
+S
+S /* USB Cache Buffer for Data and FAT Caching */
+S static U32 usb0_cache[(USB0_CASZ+1) * 256];
+S static FAT_VI usb0_vol;
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N *  USB Flash device USB1 configuration
+N *---------------------------------------------------------------------------*/
+N#if (USB1_EN)
+X#if (0)
+S extern FAT_DRV usb1_drv;
+S
+S /* USB Cache Buffer for Data and FAT Caching */
+S static U32 usb1_cache[(USB1_CASZ+1) * 256];
+S static FAT_VI usb1_vol;
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N *  NAND Flash device NAND0 configuration
+N *---------------------------------------------------------------------------*/
+N#if (NAND0_EN)
+X#if (0)
+S extern NAND_DRV nand0_drv;
+S
+S #if (NAND0_RELOC == 1)
+S  #define __AT_NAND0  __at(NAND0_CADR)
+S #else
+S  #define __AT_NAND0
+S #endif
+S
+S /* NAND Cache Buffer for FAT, Page and Block Caching */
+S #define NAND0_CSZ ((NAND0_CASZ+1) * 1024       + \
+S                    (NAND0_CAPG+2) * NAND0_PGSZ + \
+S                    (NAND0_CABL+2) * NAND0_PGCNT)
+X #define NAND0_CSZ ((NAND0_CASZ+1) * 1024       +                     (NAND0_CAPG+2) * NAND0_PGSZ +                     (NAND0_CABL+2) * NAND0_PGCNT)
+S static U32 nand0_cache[NAND0_CSZ/4] __AT_NAND0;
+S
+S static PAGE_CACHE nand0_capg[NAND0_CAPG+1];
+S static BLOCK_CACHE nand0_cabl[NAND0_CABL+2];
+S static U32 nand0_ttsn[NAND_TSN_SIZE(NAND0_BLCNT,NAND0_PGSZ)];
+S static NAND_FTL_DEV nand0_dev;
+S static FAT_VI nand0_vol;
+S
+S /* NAND Flash Configuration */
+S static NAND_FTL_CFG nand0_cfg = {
+S   /* NAND Flash Geometry */
+S   { &nand0_dev.PgLay,
+S     NAND0_BLCNT,
+S     NAND0_PGCNT,
+S     NAND0_PGSZ,
+S     NAND_SEC_BLOCK (NAND0_PGCNT,NAND0_PGSZ),
+S     NAND_SEC_PAGE (NAND0_PGSZ),
+S     NAND_ADDR_CYCLES (NAND0_BLCNT,NAND0_PGCNT,NAND0_PGSZ),
+S     NAND0_SWECC,
+S     0
+S   },
+S
+S   /* Block Translation Table Space */
+S   1,
+S   NAND_BTT_SIZE (NAND0_BLCNT),
+S
+S   /* Data Space */
+S   NAND_BTT_SIZE (NAND0_BLCNT) + 1,
+S   NAND0_BLCNT - 1,
+S
+S   /* Caching */
+S   NAND0_CABL + 2,
+S   NAND0_CAPG + 1,
+S   NAND_TSN_SIZE(NAND0_BLCNT,NAND0_PGSZ),
+S
+S   /* Page buffer & Caches */
+S   (U8 *)&nand0_cache[(NAND0_CASZ+1)*256],
+S   &nand0_cabl[0],
+S   (U8 *)&nand0_cache[(NAND0_CASZ+1)*256+(NAND0_CAPG+2)*NAND0_PGSZ/4],
+S   &nand0_capg[0],
+S   (U8 *)&nand0_cache[(NAND0_CASZ+1)*256+NAND0_PGSZ/4],
+S   &nand0_ttsn[0]
+S };
+S
+S /* NAND0 wrapper functions */
+S static BOOL nand0_Init (U32 mode) {
+S   return (ftl_Init (mode, &nand0_dev));
+S }
+S static BOOL nand0_UnInit (U32 mode) {
+S   return (ftl_UnInit (mode, &nand0_dev));
+S }
+S static BOOL nand0_RdSect (U32 sect, U8 *buf, U32 cnt) {
+S   U32 retv = ftl_ReadSect (sect, buf, cnt, &nand0_dev);
+S   if (retv == RTV_NOERR) return (__TRUE);
+S   else                   return (__FALSE);
+S }
+S static BOOL nand0_WrSect (U32 sect, U8 *buf, U32 cnt) {
+S   U32 retv = ftl_WriteSect (sect, buf, cnt, &nand0_dev);
+S   if (retv == RTV_NOERR || retv == ERR_FTL_WARN) return (__TRUE);
+S   else                                           return (__FALSE);
+S }
+S static BOOL nand0_RdInfo (Media_INFO *info) {
+S   return (ftl_ReadInfo (info, &nand0_dev));
+S }
+S
+S FAT_DRV nfat0_drv = {
+S   nand0_Init,
+S   nand0_UnInit,
+S   nand0_RdSect,
+S   nand0_WrSect,
+S   nand0_RdInfo,
+S   NULL
+S };
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N *  An array of installed Device drivers
+N *---------------------------------------------------------------------------*/
+NFS_DEV fs_DevPool[FS_NDRV] = {
+XFS_DEV fs_DevPool[(0 + 0 + 0 + 1 + 0 + 0 + 0 + 0)] = {
+N#if (FL0_EN)
+X#if (0)
+S  { &fl0_vol,  "F0", FS_EMB | FL0_DEF  },
+N#endif
+N#if (SF0_EN)
+X#if (0)
+S  { &sf0_vol,  "S0", FS_EMB | SF0_DEF  },
+N#endif
+N#if (RAM0_EN)
+X#if (0)
+S  { &ram0_vol, "R0", FS_EMB | RAM0_DEF },
+N#endif
+N#if (MC0_EN)
+X#if (1)
+N  { &mc0_vol,  "M0", FS_FAT | MC0_DEF  | FS_IOC },
+X  { &mc0_vol,  "M0", 0x04 | 1  | 0x08 },
+N#endif
+N#if (MC1_EN)
+X#if (0)
+S  { &mc1_vol,  "M1", FS_FAT | MC1_DEF  | FS_IOC },
+N#endif
+N#if (USB0_EN)
+X#if (0)
+S  { &usb0_vol, "U0", FS_FAT | USB0_DEF },
+N#endif
+N#if (USB1_EN)
+X#if (0)
+S  { &usb1_vol, "U1", FS_FAT | USB1_DEF },
+N#endif
+N#if (NAND0_EN)
+X#if (0)
+S  { &nand0_vol,"N0", FS_FAT | NAND0_DEF| FS_IOC },
+N#endif
+N}; 
+N
+N
+N/*----------------------------------------------------------------------------
+N *  Configure Flash File System
+N *---------------------------------------------------------------------------*/
+Nvoid fs_config (void) {
+N
+N#if (FL0_EN)
+X#if (0)
+S  fl0_vol.BaseAdr = FL0_BADR;
+S  fl0_vol.InitVal = (U32)0x1010101 * FL0_INITV; 
+S  fl0_vol.NumSect = sizeof(fl0_cfg)/sizeof(EFS_CFG);
+S  fl0_vol.Size    = FL0_SIZE;
+S  fl0_vol.DevCfg  = fl0_cfg;
+S  fl0_vol.drv     = &fl0_drv;
+S  fl0_vol.CpuClk  = CPU_CLK;
+N#endif
+N
+N#if (SF0_EN)
+X#if (0)
+S  sf0_vol.BaseAdr = 0;
+S  sf0_vol.InitVal = (U32)0x1010101 * SF0_INITV; 
+S  sf0_vol.NumSect = sizeof(sf0_cfg)/sizeof(EFS_CFG);
+S  sf0_vol.Size    = SF0_SIZE;
+S  sf0_vol.DevCfg  = sf0_cfg;
+S  sf0_vol.drv     = &sf0_drv;
+S  sf0_vol.CpuClk  = CPU_CLK;
+N#endif
+N
+N#if (RAM0_EN)
+X#if (0)
+S  ram0_vol.BaseAdr= (U32)ram0_buf;
+S  ram0_vol.InitVal= 0;
+S  ram0_vol.NumSect= RAM0_NSECT;
+S  ram0_vol.Size   = RAM0_SIZE;
+S  ram0_vol.DevCfg = ram0_cfg;
+S  ram0_vol.drv    = NULL;
+N#endif
+N
+N#if (MC0_EN)
+X#if (1)
+N  mc0_vol.CaSize  = MC0_CASZ * 2;
+X  mc0_vol.CaSize  = 2 * 2;
+N  mc0_vol.CaBuf   = mc0_cache;
+N  mc0_vol.drv     = &mc0_drv;
+N #if (MC0_SPI == 0)
+X #if (1 == 0)
+S  /* Register MCI driver for SD-Native mode */
+S  mci0_dev.drv    = &mci0_drv;
+N #else
+N  /* Register SPI driver for SPI mode */
+N  mmc0_dev.spi    = &spi0_drv;
+N #endif
+N#endif  
+N
+N#if (MC1_EN)
+X#if (0)
+S  mc1_vol.CaSize  = MC1_CASZ * 2;
+S  mc1_vol.CaBuf   = mc1_cache;
+S  mc1_vol.drv     = &mc1_drv;
+S #if (MC1_SPI == 0)
+S  /* Register MCI driver for SD-Native mode */
+S  mci1_dev.drv    = &mci1_drv;
+S #else
+S  /* Register SPI driver for SPI mode */
+S  mmc1_dev.spi    = &spi1_drv;
+S #endif
+N#endif  
+N
+N#if (USB0_EN)
+X#if (0)
+S  usb0_vol.CaSize = USB0_CASZ * 2;
+S  usb0_vol.CaBuf  = usb0_cache;
+S  usb0_vol.drv    = &usb0_drv;
+N#endif  
+N
+N#if (USB1_EN)
+X#if (0)
+S  usb1_vol.CaSize = USB1_CASZ * 2;
+S  usb1_vol.CaBuf  = usb1_cache;
+S  usb1_vol.drv    = &usb1_drv;
+N#endif  
+N
+N#if (NAND0_EN)
+X#if (0)
+S  nand0_vol.CaSize= NAND0_CASZ * 2;
+S  nand0_vol.CaBuf = nand0_cache;
+S  nand0_vol.drv   = &nfat0_drv;
+S  nand0_dev.Cfg   = &nand0_cfg;
+S  nand0_dev.Drv   = &nand0_drv;
+N#endif  
+N}
+N
+N#if (EFS_USE == 0)
+X#if ((0 + 0 + 0) == 0)
+N /* Empty functions to reduce image size when EFS not used */
+N BOOL efs_rename (const char *filename, IOB *fcb) { return (__FALSE); }
+X BOOL efs_rename (const char *filename, IOB *fcb) { return (0); }
+N BOOL efs_create (const char *fname, IOB *fcb)    { return (__FALSE); }
+X BOOL efs_create (const char *fname, IOB *fcb)    { return (0); }
+N BOOL efs_delete (IOB *fcb)                       { return (__FALSE); }
+X BOOL efs_delete (IOB *fcb)                       { return (0); }
+N U32  efs_free (EFS_VI *vi)                       { return (0); }
+N BOOL efs_format (EFS_VI *vi)                     { return (__FALSE); }
+X BOOL efs_format (EFS_VI *vi)                     { return (0); }
+N BOOL efs_ffind (FINFO *info, IOB *fcb)           { return (__FALSE); }
+X BOOL efs_ffind (FINFO *info, IOB *fcb)           { return (0); }
+N BOOL efs_wclose (IOB *fcb)                       { return (__FALSE); }
+X BOOL efs_wclose (IOB *fcb)                       { return (0); }
+N U32  efs_read (IOB *fcb, U8 *buf, U32 len)       { return (0); }
+N BOOL efs_write (IOB *fcb, const U8 *buf, U32 len){ return (__FALSE); }
+X BOOL efs_write (IOB *fcb, const U8 *buf, U32 len){ return (0); }
+N BOOL efs_ensure (IOB *fcb)                       { return (__FALSE); }
+X BOOL efs_ensure (IOB *fcb)                       { return (0); }
+N BOOL efs_seek (IOB *fcb, U32 pos)                { return (__FALSE); }
+X BOOL efs_seek (IOB *fcb, U32 pos)                { return (0); }
+N void efs_fsize (IOB *fcb)                        { ; }
+N BOOL efs_find (const char *name, IOB *fcb)       { return (__FALSE); }
+X BOOL efs_find (const char *name, IOB *fcb)       { return (0); }
+N int  efs_analyse (EFS_VI *vi)                    { return (0); }
+N BOOL efs_check (EFS_VI *vi)                      { return (__FALSE); }
+X BOOL efs_check (EFS_VI *vi)                      { return (0); }
+N BOOL efs_defrag (IOB *fcb)                       { return (__FALSE); }
+X BOOL efs_defrag (IOB *fcb)                       { return (0); }
+N#endif
+N
+N#if (FAT_USE == 0)
+X#if ((1 + 0 + 0 + 0 + 0) == 0)
+S /* Empty functions to reduce image size when FAT not used */
+S int  fat_init (FAT_VI *vi)                       { return (0); }
+S BOOL fat_find (const char *fn, IOB *fcb)         { return (__FALSE); }
+S BOOL fat_seek (IOB *fcb, U32 pos)                { return (__FALSE); }
+S U32  fat_read (IOB *fcb, U8 *buf, U32 len)       { return (0); }
+S BOOL fat_write (IOB *fcb, const U8 *buf, U32 len){ return (__FALSE); }
+S U64  fat_free (FAT_VI *vi)                       { return (0) ; }
+S BOOL fat_delete (const char *fn, IOB *fcb)       { return (__FALSE); }
+S BOOL fat_wclose (IOB *fcb)                       { return (__FALSE); }
+S BOOL fat_rename (const char *old, const char *newn, IOB *fcb) {
+S                                                    return (__FALSE); }
+S BOOL fat_create (const char *fn, IOB *fcb)       { return (__FALSE); }
+S BOOL fat_format (FAT_VI *vi, const char *label)  { return (__FALSE); }
+S BOOL fat_ffind  (const char *fn, FINFO *info, IOB *fcb) {
+S                                                    return (__FALSE); }
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N * end of file
+N *---------------------------------------------------------------------------*/
+L 291 "src\file_system\File_Config.c" 2
+N#endif
+N
+N/*----------------------------------------------------------------------------
+N * end of file
+N *---------------------------------------------------------------------------*/

@@ -1,0 +1,14 @@
+.\out\register.o: src\register.c
+.\out\register.o: C:\Keil\ARM\INC\NXP\LPC17xx\LPC17xx.h
+.\out\register.o: C:\Keil\ARM\RV31\INC\core_cm3.h
+.\out\register.o: C:\Keil\ARM\RV31\INC\stdint.h
+.\out\register.o: C:\Keil\ARM\INC\NXP\LPC17xx\system_LPC17xx.h
+.\out\register.o: C:\Keil\ARM\RV31\INC\stdio.h
+.\out\register.o: C:\Keil\ARM\RV31\INC\string.h
+.\out\register.o: C:\Keil\ARM\RV31\INC\stdlib.h
+.\out\register.o: .\inc\hardware_profile.h
+.\out\register.o: .\inc\register.h
+.\out\register.o: .\inc\timer.h
+.\out\register.o: C:\Keil\ARM\RV31\INC\RTL.H
+.\out\register.o: .\inc\touch.h
+.\out\register.o: .\inc\adc.h

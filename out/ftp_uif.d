@@ -1,0 +1,10 @@
+.\out\ftp_uif.o: src\tcpip\FTP_uif.c
+.\out\ftp_uif.o: C:\Keil\ARM\RV31\INC\Net_Config.h
+.\out\ftp_uif.o: C:\Keil\ARM\RV31\INC\RTL.h
+.\out\ftp_uif.o: C:\Keil\ARM\RV31\INC\File_Config.h
+.\out\ftp_uif.o: C:\Keil\ARM\RV31\INC\stdio.h
+.\out\ftp_uif.o: C:\Keil\ARM\RV31\INC\string.h
+.\out\ftp_uif.o: C:\Keil\ARM\RV31\INC\ctype.h
+.\out\ftp_uif.o: .\inc\tcpip\tcpip.h
+.\out\ftp_uif.o: .\inc\generic_type_defs.h
+.\out\ftp_uif.o: .\inc\file_system\MSD_SD_File.h

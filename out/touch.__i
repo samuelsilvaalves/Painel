@@ -1,0 +1,1 @@
+-c --cpu Cortex-M3 -g -O2 --apcs=interwork --asm --interleave --asm_dir ".\\lst\\" -I.\inc -I.\inc\file_system -I.\inc\IR -IC:\Keil\ARM\RL\TCPnet\Drivers -I.\inc\tcpip -I "C:\Keil\ARM\CMSIS\Include" -I "C:\Keil\ARM\INC\NXP\LPC17xx" -DLPC1700 -DFLASH_512 -o ".\out\touch.o" --list_dir ".\\lst\\" --list --omf_browse ".\out\touch.crf" --depend ".\out\touch.d" "src\touch.c"

@@ -1,0 +1,4 @@
+--cpu Cortex-M3 ".\out\startup_lpc17xx.o" ".\out\system_lpc17xx.o" ".\out\main.o" ".\out\uart.o" ".\out\timer.o" ".\out\extint.o" ".\out\file_config.o" ".\out\spi_lpc17xx.o" ".\out\msd_sd_file.o" ".\out\retarget.o" ".\lib\FS_CM3.lib" ".\lib\TCP_CM3.lib" ".\out\control_ir.o" ".\out\ir.o" ".\out\pwm_ir.o" ".\out\cmds_ir.o" ".\out\touch.o" ".\out\register.o" ".\out\emac_lpc17xx.o" ".\out\ftp_uif.o" ".\out\net_config.o" ".\out\tcpip.o" --strict --scatter ".\out\Painel_Motel.sct" 
+--autoat --summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\lst\Painel_Motel.map" -o ".\out\Painel_Motel.axf"

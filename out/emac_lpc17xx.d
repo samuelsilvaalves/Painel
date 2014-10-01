@@ -1,0 +1,10 @@
+.\out\emac_lpc17xx.o: src\tcpip\EMAC_LPC17xx.c
+.\out\emac_lpc17xx.o: C:\Keil\ARM\RV31\INC\stdio.h
+.\out\emac_lpc17xx.o: C:\Keil\ARM\RV31\INC\Net_Config.h
+.\out\emac_lpc17xx.o: C:\Keil\ARM\RV31\INC\RTL.h
+.\out\emac_lpc17xx.o: C:\Keil\ARM\RL\TCPnet\Drivers\EMAC_LPC17xx.h
+.\out\emac_lpc17xx.o: C:\Keil\ARM\INC\NXP\LPC17xx\LPC17xx.h
+.\out\emac_lpc17xx.o: C:\Keil\ARM\RV31\INC\core_cm3.h
+.\out\emac_lpc17xx.o: C:\Keil\ARM\RV31\INC\stdint.h
+.\out\emac_lpc17xx.o: C:\Keil\ARM\INC\NXP\LPC17xx\system_LPC17xx.h
+.\out\emac_lpc17xx.o: .\inc\hardware_profile.h
